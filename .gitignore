@@ -1,0 +1,12 @@
+__pycache__/
+.pytest_cache/
+.vscode/
+.agent_history
+vibe-coded.txt
+*.pyc
+.venv/
+.env/
+.DS_Store
+vibe-coded.txt
+vibe-coder.py
+README-private.md
