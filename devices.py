@@ -4,7 +4,7 @@ DEVICES = [
         "ip": "192.168.0.39",
         "description": "Joshs Macbook M4",
         "tags": ["mac", "laptop"],
-        "admin": True,
+        #"admin": True,
     }
 ]
 

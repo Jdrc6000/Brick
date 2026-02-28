@@ -11,20 +11,21 @@
         rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0c0e;
-            --bg2: #0f1215;
-            --bg3: #141820;
-            --panel: #12161c;
-            --border: #1e2530;
-            --border2: #2a3340;
+            --bg: #090c0f;
+            --bg2: #0e1217;
+            --bg3: #131820;
+            --panel: #0e1318;
+            --border: #1c2530;
+            --border2: #263040;
             --amber: #e8a020;
             --amber2: #f5b830;
-            --red: #e03030;
+            --red: #c83030;
             --green: #28a060;
-            --green2: #38c878;
-            --dim: #4a5568;
-            --text: #c8d4e0;
-            --text2: #7a8fa0;
+            --green2: #36c878;
+            --dim: #3d5060;
+            --dim2: #5a7080;
+            --text: #c0ccd8;
+            --text2: #6a8090;
             --mono: 'Share Tech Mono', monospace;
             --sans: 'Barlow Condensed', sans-serif;
             --body: 'Barlow', sans-serif;
@@ -48,63 +49,79 @@
             overflow: hidden;
         }
 
+        /* ── LAYOUT ── */
         #root {
             display: grid;
             grid-template-rows: 48px 1fr;
-            grid-template-columns: 240px 1fr 280px;
+            grid-template-columns: 220px 1fr 270px;
             height: 100vh;
         }
 
-        #root.no-admin {
+        #root.no-sidebar {
             grid-template-columns: 0px 1fr 0px;
         }
 
-        #root.no-admin #sidebar,
-        #root.no-admin #right-panel {
+        #root.no-sidebar #sidebar,
+        #root.no-sidebar #right-panel {
             display: none;
         }
 
+        /* ── HEADER ── */
         header {
-            grid-column: 1/-1;
+            grid-column: 1 / -1;
             background: var(--bg2);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             padding: 0 20px;
-            gap: 24px;
+            gap: 20px;
         }
 
         .logo {
             font-family: var(--sans);
             font-weight: 900;
-            font-size: 22px;
-            letter-spacing: .15em;
+            font-size: 20px;
+            letter-spacing: .18em;
             color: var(--amber);
             text-transform: uppercase;
+            user-select: none;
         }
 
-        .logo span {
-            color: var(--dim);
+        .logo em {
+            color: var(--dim2);
+            font-style: normal;
             font-weight: 400;
-            font-size: 13px;
+            font-size: 12px;
             margin-left: 6px;
-            letter-spacing: .1em;
+            letter-spacing: .12em;
         }
 
         .header-right {
             margin-left: auto;
             display: flex;
-            gap: 16px;
             align-items: center;
+            gap: 14px;
         }
 
-        .status-pill {
+        .pill {
             font-family: var(--mono);
             font-size: 11px;
             color: var(--text2);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
+            padding: 3px 10px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+        }
+
+        .pill .label {
+            color: var(--dim2);
+        }
+
+        .pill .val {
+            color: var(--amber);
+            font-weight: bold;
         }
 
         .dot {
@@ -112,13 +129,19 @@
             height: 6px;
             border-radius: 50%;
             background: var(--green2);
-            box-shadow: 0 0 6px var(--green2);
-            animation: pulse 2s ease infinite;
+            box-shadow: 0 0 5px var(--green2);
+            animation: pulse 2.4s ease infinite;
         }
 
         .dot.red {
             background: var(--red);
-            box-shadow: 0 0 6px var(--red);
+            box-shadow: 0 0 5px var(--red);
+            animation: none;
+        }
+
+        .dot.amber {
+            background: var(--amber);
+            box-shadow: 0 0 5px var(--amber);
             animation: none;
         }
 
@@ -130,38 +153,20 @@
             }
 
             50% {
-                opacity: .4
+                opacity: .35
             }
         }
 
-        .identity-pill {
+        .hub-status {
             font-family: var(--mono);
             font-size: 11px;
             color: var(--text2);
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 4px 10px;
-            border: 1px solid var(--border);
-            border-radius: 2px;
+            gap: 7px;
         }
 
-        .identity-pill .device-label {
-            color: var(--amber);
-            font-weight: bold;
-        }
-
-        .admin-badge {
-            font-family: var(--mono);
-            font-size: 10px;
-            color: var(--amber);
-            background: rgba(232, 160, 32, .1);
-            border: 1px solid rgba(232, 160, 32, .3);
-            padding: 2px 8px;
-            border-radius: 2px;
-            letter-spacing: .1em;
-        }
-
+        /* ── SIDEBAR ── */
         #sidebar {
             background: var(--panel);
             border-right: 1px solid var(--border);
@@ -174,30 +179,38 @@
             font-family: var(--sans);
             font-size: 10px;
             font-weight: 700;
-            letter-spacing: .2em;
+            letter-spacing: .22em;
             color: var(--dim);
             text-transform: uppercase;
-            padding: 12px 12px 6px;
+            padding: 14px 12px 7px;
         }
 
         .device-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 8px 8px;
             display: flex;
             flex-direction: column;
             gap: 3px;
-            padding: 0 8px 8px;
-            overflow-y: auto;
-            flex: 1;
+        }
+
+        .device-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .device-list::-webkit-scrollbar-thumb {
+            background: var(--border2);
         }
 
         .device-item {
-            padding: 9px 10px;
+            padding: 8px 10px;
             border: 1px solid var(--border);
             border-radius: 2px;
             cursor: pointer;
-            transition: all .15s;
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: border-color .12s, background .12s;
         }
 
         .device-item:hover {
@@ -207,23 +220,24 @@
 
         .device-item.active {
             border-color: var(--amber);
-            background: rgba(232, 160, 32, .06);
+            background: rgba(232, 160, 32, .05);
         }
 
-        .device-dot {
+        .dev-dot {
             width: 7px;
             height: 7px;
             border-radius: 50%;
             background: var(--dim);
             flex-shrink: 0;
+            transition: background .2s, box-shadow .2s;
         }
 
-        .device-dot.online {
+        .dev-dot.online {
             background: var(--green2);
             box-shadow: 0 0 5px var(--green2);
         }
 
-        .device-name {
+        .dev-name {
             font-family: var(--sans);
             font-weight: 600;
             font-size: 13px;
@@ -234,7 +248,7 @@
             white-space: nowrap;
         }
 
-        .device-tag {
+        .dev-tag {
             font-family: var(--mono);
             font-size: 9px;
             color: var(--dim);
@@ -244,74 +258,103 @@
             border-radius: 2px;
         }
 
+        /* ── MAIN AREA ── */
         #main {
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            background: var(--bg);
         }
 
-        .chat-header {
-            padding: 10px 16px;
-            border-bottom: 1px solid var(--border);
+        /* splash screens */
+        .splash {
+            flex: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            background: var(--bg2);
-            flex-shrink: 0;
+            justify-content: center;
+            gap: 14px;
         }
 
-        .chat-device-name {
+        .splash-icon {
+            font-size: 36px;
+            opacity: .18;
+            line-height: 1;
+        }
+
+        .splash-title {
             font-family: var(--sans);
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: .05em;
+            font-weight: 900;
+            font-size: 17px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+        }
+
+        .splash-title.red {
+            color: var(--red);
+        }
+
+        .splash-title.amber {
             color: var(--amber);
         }
 
-        .chat-device-meta {
+        .splash-sub {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--dim2);
+            line-height: 1.9;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        /* chat header */
+        .chat-header {
+            padding: 9px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .ch-name {
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: .07em;
+            color: var(--amber);
+        }
+
+        .ch-meta {
             font-family: var(--mono);
             font-size: 11px;
             color: var(--text2);
             margin-left: auto;
         }
 
+        /* messages */
         #messages {
             flex: 1;
             overflow-y: auto;
             padding: 20px 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            scroll-behavior: smooth;
+            gap: 14px;
         }
 
         #messages::-webkit-scrollbar {
-            width: 4px;
+            width: 3px;
         }
 
         #messages::-webkit-scrollbar-thumb {
             background: var(--border2);
-            border-radius: 2px;
         }
 
         .message {
             display: flex;
             flex-direction: column;
             gap: 4px;
-            animation: slideIn .2s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
+            animation: fadeUp .18s ease;
         }
 
         .message.user {
@@ -326,27 +369,39 @@
             align-items: center;
         }
 
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
         .msg-label {
             font-family: var(--mono);
             font-size: 10px;
             color: var(--dim);
-            letter-spacing: .1em;
+            letter-spacing: .12em;
             text-transform: uppercase;
         }
 
         .msg-bubble {
-            max-width: 80%;
-            padding: 10px 14px;
+            max-width: 78%;
+            padding: 9px 13px;
             border-radius: 2px;
-            font-size: 13.5px;
-            line-height: 1.6;
+            font-size: 13px;
+            line-height: 1.65;
             white-space: pre-wrap;
             word-break: break-word;
         }
 
         .message.user .msg-bubble {
-            background: rgba(232, 160, 32, .1);
-            border: 1px solid rgba(232, 160, 32, .25);
+            background: rgba(232, 160, 32, .08);
+            border: 1px solid rgba(232, 160, 32, .22);
             font-family: var(--body);
         }
 
@@ -354,50 +409,51 @@
             background: var(--panel);
             border: 1px solid var(--border);
             font-family: var(--mono);
-            font-size: 12.5px;
+            font-size: 12px;
         }
 
         .message.system .msg-bubble {
             background: transparent;
             border: 1px solid var(--border);
-            color: var(--dim);
+            color: var(--dim2);
             font-family: var(--mono);
             font-size: 11px;
             max-width: 100%;
             text-align: center;
         }
 
-        .thinking {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 14px;
+        /* thinking indicator */
+        .thinking-bubble {
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 2px;
+            padding: 9px 13px;
             font-family: var(--mono);
             font-size: 11px;
-            color: var(--dim);
+            color: var(--dim2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .thinking-dots span {
+        .blink-dots span {
             display: inline-block;
             animation: blink 1.2s ease infinite;
         }
 
-        .thinking-dots span:nth-child(2) {
-            animation-delay: .2s;
+        .blink-dots span:nth-child(2) {
+            animation-delay: .22s;
         }
 
-        .thinking-dots span:nth-child(3) {
-            animation-delay: .4s;
+        .blink-dots span:nth-child(3) {
+            animation-delay: .44s;
         }
 
         @keyframes blink {
 
             0%,
             100% {
-                opacity: .2
+                opacity: .15
             }
 
             50% {
@@ -405,13 +461,14 @@
             }
         }
 
-        .chat-input-row {
-            padding: 12px 16px;
+        /* input row */
+        .input-row {
+            padding: 10px 14px;
             border-top: 1px solid var(--border);
+            background: var(--bg2);
             display: flex;
             gap: 8px;
             flex-shrink: 0;
-            background: var(--bg2);
         }
 
         #chat-input {
@@ -419,15 +476,15 @@
             background: var(--bg);
             border: 1px solid var(--border2);
             border-radius: 2px;
-            padding: 8px 12px;
+            padding: 8px 11px;
             color: var(--text);
             font-family: var(--mono);
             font-size: 13px;
             outline: none;
             resize: none;
             min-height: 38px;
-            max-height: 120px;
-            transition: border-color .15s;
+            max-height: 110px;
+            transition: border-color .12s;
         }
 
         #chat-input:focus {
@@ -440,7 +497,7 @@
 
         #send-btn {
             background: var(--amber);
-            color: var(--bg);
+            color: #0a0c0e;
             border: none;
             padding: 0 16px;
             border-radius: 2px;
@@ -449,7 +506,7 @@
             font-size: 13px;
             letter-spacing: .1em;
             cursor: pointer;
-            transition: background .15s;
+            transition: background .12s;
             white-space: nowrap;
         }
 
@@ -462,61 +519,7 @@
             cursor: not-allowed;
         }
 
-        .no-device {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            color: var(--dim);
-        }
-
-        .no-device-icon {
-            font-size: 40px;
-            opacity: .3;
-        }
-
-        .no-device-text {
-            font-family: var(--sans);
-            font-weight: 600;
-            font-size: 15px;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-        }
-
-        .unknown-splash {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-        }
-
-        .unknown-splash .big-icon {
-            font-size: 48px;
-            opacity: .2;
-        }
-
-        .unknown-splash .title {
-            font-family: var(--sans);
-            font-weight: 900;
-            font-size: 20px;
-            letter-spacing: .2em;
-            color: var(--red);
-            text-transform: uppercase;
-        }
-
-        .unknown-splash .sub {
-            font-family: var(--mono);
-            font-size: 11px;
-            color: var(--dim);
-            text-align: center;
-            line-height: 1.8;
-            max-width: 280px;
-        }
-
+        /* ── RIGHT PANEL ── */
         #right-panel {
             background: var(--panel);
             border-left: 1px solid var(--border);
@@ -525,32 +528,32 @@
             overflow: hidden;
         }
 
-        .panel-tabs {
+        .tabs {
             display: flex;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
         }
 
-        .panel-tab {
+        .tab {
             flex: 1;
             padding: 10px 4px;
             text-align: center;
             font-family: var(--sans);
             font-weight: 700;
             font-size: 11px;
-            letter-spacing: .15em;
+            letter-spacing: .16em;
             text-transform: uppercase;
-            color: var(--dim);
+            color: var(--dim2);
             cursor: pointer;
             border-bottom: 2px solid transparent;
-            transition: all .15s;
+            transition: color .12s, border-color .12s;
         }
 
-        .panel-tab:hover {
+        .tab:hover {
             color: var(--text2);
         }
 
-        .panel-tab.active {
+        .tab.active {
             color: var(--amber);
             border-bottom-color: var(--amber);
         }
@@ -562,24 +565,24 @@
         }
 
         .panel-body::-webkit-scrollbar {
-            width: 4px;
+            width: 3px;
         }
 
         .panel-body::-webkit-scrollbar-thumb {
             background: var(--border2);
         }
 
-        .section-title {
+        .sec-title {
             font-family: var(--sans);
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: .15em;
+            letter-spacing: .2em;
             color: var(--dim);
             text-transform: uppercase;
-            margin-bottom: 8px;
+            margin-bottom: 9px;
         }
 
-        .device-card {
+        .dev-card {
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 2px;
@@ -587,83 +590,92 @@
             margin-bottom: 6px;
         }
 
-        .device-card.online {
-            border-color: rgba(56, 200, 120, .2);
+        .dev-card.online {
+            border-color: rgba(54, 200, 120, .18);
         }
 
-        .dc-header {
+        .dcard-head {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 4px;
         }
 
-        .dc-name {
+        .dcard-name {
             font-family: var(--sans);
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text);
         }
 
-        .dc-status {
+        .dcard-badge {
             font-family: var(--mono);
             font-size: 10px;
             padding: 1px 6px;
             border-radius: 2px;
         }
 
-        .dc-status.online {
+        .dcard-badge.online {
             color: var(--green2);
-            background: rgba(56, 200, 120, .1);
-            border: 1px solid rgba(56, 200, 120, .3);
+            background: rgba(54, 200, 120, .08);
+            border: 1px solid rgba(54, 200, 120, .25);
         }
 
-        .dc-status.offline {
+        .dcard-badge.offline {
             color: var(--dim);
             background: transparent;
             border: 1px solid var(--border);
         }
 
-        .dc-meta {
+        .dcard-meta {
             font-family: var(--mono);
             font-size: 10px;
             color: var(--text2);
-            line-height: 1.7;
+            line-height: 1.75;
         }
 
-        .dc-tags {
+        .dcard-tags {
             display: flex;
             gap: 4px;
             flex-wrap: wrap;
             margin-top: 5px;
         }
 
-        .dc-tag {
+        .dcard-tag {
             font-family: var(--mono);
             font-size: 9px;
             color: var(--dim);
             background: var(--bg2);
             border: 1px solid var(--border);
-            padding: 1px 6px;
+            padding: 1px 5px;
             border-radius: 2px;
         }
 
-        .setup-block {
+        /* setup tab */
+        .setup-card {
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 2px;
             padding: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
-        .setup-title {
+        .setup-card-title {
             font-family: var(--sans);
             font-weight: 700;
             font-size: 12px;
-            letter-spacing: .1em;
+            letter-spacing: .12em;
             color: var(--amber);
             text-transform: uppercase;
             margin-bottom: 8px;
+        }
+
+        .setup-desc {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text2);
+            line-height: 1.8;
+            margin-bottom: 6px;
         }
 
         .code-block {
@@ -677,30 +689,23 @@
             border-radius: 2px;
             white-space: pre;
             overflow-x: auto;
-            margin-top: 6px;
         }
 
-        .setup-desc {
-            font-family: var(--mono);
-            font-size: 11px;
-            color: var(--text2);
-            line-height: 1.8;
-        }
-
+        /* toast */
         #toast {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 18px;
+            right: 18px;
             background: var(--panel);
             border: 1px solid var(--border2);
             border-radius: 2px;
-            padding: 10px 16px;
+            padding: 9px 15px;
             font-family: var(--mono);
             font-size: 12px;
             color: var(--text);
             opacity: 0;
-            transform: translateY(10px);
-            transition: all .25s;
+            transform: translateY(8px);
+            transition: all .22s;
             pointer-events: none;
             z-index: 999;
         }
@@ -710,38 +715,29 @@
             transform: translateY(0);
         }
 
-        #toast.error {
+        #toast.show.error {
             border-color: var(--red);
             color: var(--red);
-        }
-
-        @keyframes scan {
-            from {
-                top: 0
-            }
-
-            to {
-                top: 100vh
-            }
         }
     </style>
 </head>
 
 <body>
     <div id="root">
+
         <header>
-            <div class="logo">BRICK <span>// SYSTEMS</span></div>
-            <div class="identity-pill" id="identity-pill" style="display:none">
-                <span>CONNECTED AS</span>
-                <span class="device-label" id="identity-label">—</span>
+            <div class="logo">BRICK <em>// SYSTEMS</em></div>
+            <div class="pill" id="identity-pill" style="display:none">
+                <span class="label">AS</span>
+                <span class="val" id="identity-label">—</span>
             </div>
             <div class="header-right">
-                <div class="status-pill">
+                <div class="hub-status">
                     <div class="dot" id="hub-dot"></div>
-                    <span id="hub-status">CONNECTING</span>
+                    <span id="hub-label">CONNECTING</span>
                 </div>
-                <div class="status-pill" id="dev-count-pill" style="display:none">
-                    <span id="dev-count">0</span> DEVICES
+                <div class="hub-status" id="dev-count-wrap" style="display:none">
+                    <span id="dev-count">0</span>&nbsp;DEVICES
                 </div>
             </div>
         </header>
@@ -752,257 +748,275 @@
         </nav>
 
         <main id="main">
-            <div class="unknown-splash" id="unknown-splash" style="display:none">
-                <div class="big-icon">⬡</div>
-                <div class="title">Unrecognised Device</div>
-                <div class="sub" id="unknown-ip-text"></div>
+            <!-- Shown while we figure out who this is -->
+            <div class="splash" id="splash-loading">
+                <div class="splash-icon">⬡</div>
+                <div class="splash-title amber">IDENTIFYING</div>
+                <div class="splash-sub">Checking device registry…</div>
             </div>
+
+            <!-- Unknown device -->
+            <div class="splash" id="splash-unknown" style="display:none">
+                <div class="splash-icon">⊘</div>
+                <div class="splash-title red">ACCESS DENIED</div>
+                <div class="splash-sub" id="unknown-text">Your IP is not registered. Contact the administrator.</div>
+            </div>
+
+            <!-- Admin: no device selected yet -->
+            <div class="splash" id="splash-select" style="display:none">
+                <div class="splash-icon">⬡</div>
+                <div class="splash-title amber">SELECT A DEVICE</div>
+                <div class="splash-sub">Choose a device from the sidebar to begin.</div>
+            </div>
+
+            <!-- Chat UI -->
             <div class="chat-header" id="chat-header" style="display:none">
-                <div class="chat-device-name" id="chat-device-name">—</div>
-                <div class="chat-device-meta" id="chat-device-meta"></div>
-            </div>
-            <div class="no-device" id="no-device">
-                <div class="no-device-icon">⬡</div>
-                <div class="no-device-text">Identifying...</div>
+                <div class="ch-name" id="ch-name">—</div>
+                <div class="ch-meta" id="ch-meta"></div>
             </div>
             <div id="messages" style="display:none"></div>
-            <div class="chat-input-row" id="chat-input-row" style="display:none">
-                <textarea id="chat-input" placeholder="Talk to Brick..." rows="1"
-                    onkeydown="handleKey(event)"></textarea>
+            <div class="input-row" id="input-row" style="display:none">
+                <textarea id="chat-input" rows="1" placeholder="Talk to Brick…" onkeydown="handleKey(event)"></textarea>
                 <button id="send-btn" onclick="sendMessage()">SEND</button>
             </div>
         </main>
 
         <aside id="right-panel">
-            <div class="panel-tabs">
-                <div class="panel-tab active" id="tab-devices" onclick="switchTab('devices')">Devices</div>
-                <div class="panel-tab" id="tab-setup" onclick="switchTab('setup')">Setup</div>
+            <div class="tabs">
+                <div class="tab active" id="tab-devices" onclick="switchTab('devices')">Devices</div>
+                <div class="tab" id="tab-setup" onclick="switchTab('setup')">Setup</div>
             </div>
             <div class="panel-body" id="panel-devices">
-                <div class="section-title">Configured Devices</div>
-                <div id="admin-device-list"></div>
+                <div class="sec-title">Registered Devices</div>
+                <div id="admin-dev-list"></div>
             </div>
             <div class="panel-body" id="panel-setup" style="display:none">
-                <div class="setup-block">
-                    <div class="setup-title">1. Define Your Devices</div>
-                    <div class="setup-desc">Edit <code style="color:var(--amber)">devices.py</code> on the server:</div>
+                <div class="setup-card">
+                    <div class="setup-card-title">1. Register Devices</div>
+                    <div class="setup-desc">Edit <code style="color:var(--amber)">devices.py</code> on the Pi:</div>
                     <div class="code-block">DEVICES = [
                         {
                         "name": "my-machine",
                         "ip": "192.168.1.10",
                         "description": "My desktop",
                         "tags": ["linux"],
-                        "admin": True, # gets sidebar + device panel
+                        "admin": True, # sees all devices
                         },
                         {
                         "name": "server-01",
                         "ip": "192.168.1.20",
                         "description": "Home server",
                         "tags": ["linux"],
-                        # no admin flag — just their own chat
+                        # no admin — sees own chat only
                         },
                         ]</div>
                 </div>
-                <div class="setup-block">
-                    <div class="setup-title">2. Start Hub</div>
+                <div class="setup-card">
+                    <div class="setup-card-title">2. Start Hub (Pi5)</div>
                     <div class="code-block">uvicorn server.app:app \
                         --host 0.0.0.0 --port 8000</div>
                 </div>
-                <div class="setup-block">
-                    <div class="setup-title">3. Run Local Agent</div>
-                    <div class="setup-desc">Copy <code style="color:var(--amber)">local_agent/local_agent.py</code> to
+                <div class="setup-card">
+                    <div class="setup-card-title">3. Local Agent</div>
+                    <div class="setup-desc">Drop <code style="color:var(--amber)">local_agent/local_agent.py</code> on
                         each machine.</div>
                     <div class="code-block">BRICK_PROJECT_ROOT=/path/to/brick \
                         python local_agent.py</div>
                 </div>
-                <div class="setup-block">
-                    <div class="setup-title">4. Run as Service</div>
-                    <div class="code-block">[Unit]
-                        Description=Brick Local Agent
-                        After=network.target
-                        [Service]
+                <div class="setup-card">
+                    <div class="setup-card-title">4. Systemd Service</div>
+                    <div class="code-block">[Service]
                         Environment=BRICK_PROJECT_ROOT=/opt/brick
                         ExecStart=/usr/bin/python3 \
                         /opt/brick/local_agent/local_agent.py
-                        Restart=always
-                        [Install]
-                        WantedBy=multi-user.target</div>
+                        Restart=always</div>
                 </div>
             </div>
         </aside>
+
     </div>
     <div id="toast"></div>
 
     <script>
         const HUB = '';
-        let selectedDevice = null;
-        let selfDevice = null;
-        let isAdmin = false;
+        let self_device = null;
+        let selected_device = null;
+        let is_admin = false;
 
+        // ── INIT ──────────────────────────────────────────────────────────────────
         async function init() {
             await checkHub();
+
+            let data;
             try {
                 const r = await fetch(HUB + '/whoami');
-                const data = await r.json();
-
-                if (!data.known) {
-                    document.getElementById('no-device').style.display = 'none';
-                    document.getElementById('unknown-splash').style.display = '';
-                    document.getElementById('unknown-ip-text').textContent =
-                        `Your IP (${data.ip}) is not registered in devices.py. Add it to gain access.`;
-                    document.getElementById('root').classList.add('no-admin');
-                    return;
-                }
-
-                selfDevice = data;
-                isAdmin = data.admin === true;
-
-                document.getElementById('identity-pill').style.display = '';
-                document.getElementById('identity-label').textContent = data.name.toUpperCase();
-
-                if (isAdmin) {
-                    loadDevices();
-                } else {
-                    document.getElementById('root').classList.add('no-admin');
-                    openChat(selfDevice);
-                }
+                data = await r.json();
             } catch (e) {
-                document.getElementById('no-device').querySelector('.no-device-text').textContent = 'Could not identify device';
+                show('splash-loading', false);
+                show('splash-unknown', true);
+                document.getElementById('unknown-text').textContent = 'Could not reach hub.';
+                return;
+            }
+
+            show('splash-loading', false);
+
+            if (!data.known) {
+                // Not in devices.py — tell them to go away
+                show('splash-unknown', true);
+                document.getElementById('unknown-text').textContent =
+                    `IP ${data.ip} is not registered. Ask the admin to add you to devices.py.`;
+                document.getElementById('root').classList.add('no-sidebar');
+                return;
+            }
+
+            self_device = data;
+            is_admin = data.admin === true;
+
+            document.getElementById('identity-pill').style.display = '';
+            document.getElementById('identity-label').textContent = data.name.toUpperCase();
+
+            if (is_admin) {
+                // Admin gets sidebar + right panel + can pick any device
+                await loadAdminDevices();
+                show('splash-select', true);
+            } else {
+                // Regular device — straight to their own chat, no sidebar/panel
+                document.getElementById('root').classList.add('no-sidebar');
+                openChat(self_device);
             }
         }
 
+        // ── HUB STATUS ────────────────────────────────────────────────────────────
         async function checkHub() {
             try {
                 const r = await fetch(HUB + '/status');
                 if (r.ok) {
                     const d = await r.json();
                     document.getElementById('hub-dot').className = 'dot';
-                    document.getElementById('hub-status').textContent = 'HUB ONLINE';
+                    document.getElementById('hub-label').textContent = 'HUB ONLINE';
                     document.getElementById('dev-count').textContent = d.devices_configured;
-                    document.getElementById('dev-count-pill').style.display = '';
+                    document.getElementById('dev-count-wrap').style.display = '';
                 } else setOffline();
             } catch { setOffline(); }
         }
 
         function setOffline() {
             document.getElementById('hub-dot').className = 'dot red';
-            document.getElementById('hub-status').textContent = 'HUB OFFLINE';
+            document.getElementById('hub-label').textContent = 'HUB OFFLINE';
         }
 
-        async function loadDevices() {
+        // ── ADMIN DEVICE LIST ─────────────────────────────────────────────────────
+        async function loadAdminDevices() {
             try {
                 const r = await fetch(HUB + '/admin/devices');
-                if (!r.ok) { toast('Failed to load devices', 'error'); return; }
-                const data = await r.json();
-                renderSidebar(data.devices);
-                renderAdminPanel(data.devices);
-            } catch (e) { toast('Could not reach hub', 'error'); }
+                if (!r.ok) return;
+                const d = await r.json();
+                renderSidebar(d.devices);
+                renderAdminPanel(d.devices);
+            } catch (e) { toast('Could not load device list', 'error'); }
         }
 
         function renderSidebar(devices) {
-            const el = document.getElementById('device-list');
-            el.innerHTML = devices.map(d => `
-          <div class="device-item ${selectedDevice?.name === d.name ? 'active' : ''}"
-               onclick='selectDevice(${JSON.stringify(d).replace(/'/g, "&#39;")})'>
-            <div class="device-dot ${d.online ? 'online' : ''}"></div>
-            <div class="device-name">${esc(d.name)}</div>
-            ${d.tags?.length ? `<div class="device-tag">${esc(d.tags[0])}</div>` : ''}
-          </div>
-        `).join('');
-
-            // Auto-open admin's own device if nothing selected yet
-            if (!selectedDevice) {
-                const own = devices.find(d => d.name === selfDevice?.name);
-                if (own) selectDevice(own);
-            }
+            document.getElementById('device-list').innerHTML = devices.map(d => `
+    <div class="device-item ${selected_device?.name === d.name ? 'active' : ''}"
+         onclick='pickDevice(${JSON.stringify(d).replace(/'/g, "&#39;")})'>
+      <div class="dev-dot ${d.online ? 'online' : ''}"></div>
+      <div class="dev-name">${esc(d.name)}</div>
+      ${d.tags?.length ? `<div class="dev-tag">${esc(d.tags[0])}</div>` : ''}
+    </div>`).join('');
         }
 
         function renderAdminPanel(devices) {
-            document.getElementById('admin-device-list').innerHTML = devices.map(d => `
-          <div class="device-card ${d.online ? 'online' : ''}">
-            <div class="dc-header">
-              <div class="dc-name">${esc(d.name)}</div>
-              <div class="dc-status ${d.online ? 'online' : 'offline'}">${d.online ? 'ONLINE' : 'OFFLINE'}</div>
-            </div>
-            <div class="dc-meta">IP: ${esc(d.ip)}<br>${d.description ? esc(d.description) : ''}</div>
-            ${d.tags?.length ? `<div class="dc-tags">${d.tags.map(t => `<div class="dc-tag">${esc(t)}</div>`).join('')}</div>` : ''}
-          </div>
-        `).join('');
+            document.getElementById('admin-dev-list').innerHTML = devices.map(d => `
+    <div class="dev-card ${d.online ? 'online' : ''}">
+      <div class="dcard-head">
+        <div class="dcard-name">${esc(d.name)}</div>
+        <div class="dcard-badge ${d.online ? 'online' : 'offline'}">${d.online ? 'ONLINE' : 'OFFLINE'}</div>
+      </div>
+      <div class="dcard-meta">IP: ${esc(d.ip || '—')}<br>${esc(d.description || '')}</div>
+      ${d.tags?.length ? `<div class="dcard-tags">${d.tags.map(t => `<div class="dcard-tag">${esc(t)}</div>`).join('')}</div>` : ''}
+    </div>`).join('');
         }
 
-        function selectDevice(device) {
-            selectedDevice = device;
+        function pickDevice(device) {
+            selected_device = device;
             openChat(device);
-            loadDevices();
+            loadAdminDevices(); // refresh sidebar state
         }
 
+        // ── CHAT ──────────────────────────────────────────────────────────────────
         function openChat(device) {
-            document.getElementById('no-device').style.display = 'none';
-            document.getElementById('unknown-splash').style.display = 'none';
-            document.getElementById('messages').style.display = '';
-            document.getElementById('chat-input-row').style.display = '';
-            document.getElementById('chat-header').style.display = '';
-            document.getElementById('chat-device-name').textContent = device.name.toUpperCase();
-            document.getElementById('chat-device-meta').textContent =
-                [device.description, device.ip].filter(Boolean).join(' — ');
+            selected_device = device;
+
+            // Hide splashes, show chat
+            ['splash-loading', 'splash-unknown', 'splash-select'].forEach(id => show(id, false));
+            show('chat-header', true);
+            show('messages', true);
+            show('input-row', true);
+
+            document.getElementById('ch-name').textContent = device.name.toUpperCase();
+            document.getElementById('ch-meta').textContent =
+                [device.description, device.ip].filter(Boolean).join(' · ');
+
             document.getElementById('messages').innerHTML = '';
-            addSysMsg(`Session started · ${device.name} · ${device.ip || ''}`);
-            selectedDevice = device;
+            sysMsg(`Session · ${device.name}${device.ip ? ' · ' + device.ip : ''}`);
+            document.getElementById('chat-input').focus();
         }
 
-        function addMessage(role, text) {
-            const msgs = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = 'message ' + role;
-            div.innerHTML = `<div class="msg-label">${role === 'user' ? 'YOU' : 'BRICK'}</div><div class="msg-bubble">${esc(text)}</div>`;
-            msgs.appendChild(div);
-            msgs.scrollTop = msgs.scrollHeight;
+        function addMsg(role, text) {
+            const el = document.getElementById('messages');
+            const d = document.createElement('div');
+            d.className = 'message ' + role;
+            d.innerHTML = role === 'system'
+                ? `<div class="msg-bubble">${esc(text)}</div>`
+                : `<div class="msg-label">${role === 'user' ? 'YOU' : 'BRICK'}</div>
+       <div class="msg-bubble">${esc(text)}</div>`;
+            el.appendChild(d);
+            el.scrollTop = el.scrollHeight;
         }
 
-        function addSysMsg(text) {
-            const msgs = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = 'message system';
-            div.innerHTML = `<div class="msg-bubble">${esc(text)}</div>`;
-            msgs.appendChild(div);
-            msgs.scrollTop = msgs.scrollHeight;
-        }
+        function sysMsg(t) { addMsg('system', t); }
 
-        function addThinking() {
-            const msgs = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = 'message assistant';
-            div.id = 'thinking';
-            div.innerHTML = `<div class="msg-label">BRICK</div><div class="thinking">PROCESSING <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div>`;
-            msgs.appendChild(div);
-            msgs.scrollTop = msgs.scrollHeight;
-            return div;
+        function showThinking() {
+            const el = document.getElementById('messages');
+            const d = document.createElement('div');
+            d.className = 'message assistant';
+            d.id = 'thinking';
+            d.innerHTML = `<div class="msg-label">BRICK</div>
+    <div class="thinking-bubble">PROCESSING <span class="blink-dots"><span>.</span><span>.</span><span>.</span></span></div>`;
+            el.appendChild(d);
+            el.scrollTop = el.scrollHeight;
         }
 
         async function sendMessage() {
-            if (!selectedDevice) { toast('No device selected', 'error'); return; }
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
+            if (!selected_device) { toast('No device selected', 'error'); return; }
+            const inp = document.getElementById('chat-input');
+            const msg = inp.value.trim();
             if (!msg) return;
-            input.value = '';
-            input.style.height = '';
-            addMessage('user', msg);
+
+            inp.value = '';
+            inp.style.height = '';
+            addMsg('user', msg);
             document.getElementById('send-btn').disabled = true;
-            const thinking = addThinking();
+            showThinking();
+
             try {
                 const r = await fetch(HUB + '/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: msg, device_name: selectedDevice.name }),
+                    // server ignores device_name now — it uses the caller's IP
+                    // but we still send it for compatibility if an older server is running
+                    body: JSON.stringify({ message: msg, device_name: selected_device.name }),
                 });
-                thinking.remove();
+                document.getElementById('thinking')?.remove();
                 const data = await r.json();
-                if (!r.ok) addSysMsg('Error: ' + (data.detail || r.status));
-                else addMessage('assistant', data.reply);
+                if (!r.ok) sysMsg('Error: ' + (data.detail || r.status));
+                else addMsg('assistant', data.reply);
             } catch (e) {
-                thinking.remove();
-                addSysMsg('Connection error: ' + e.message);
+                document.getElementById('thinking')?.remove();
+                sysMsg('Connection error: ' + e.message);
             }
+
             document.getElementById('send-btn').disabled = false;
             document.getElementById('chat-input').focus();
         }
@@ -1011,29 +1025,42 @@
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
             const ta = e.target;
             ta.style.height = '';
-            ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+            ta.style.height = Math.min(ta.scrollHeight, 110) + 'px';
         }
 
-        function switchTab(tab) {
+        // ── TABS ──────────────────────────────────────────────────────────────────
+        function switchTab(name) {
             ['devices', 'setup'].forEach(t => {
-                document.getElementById('tab-' + t).classList.toggle('active', t === tab);
-                document.getElementById('panel-' + t).style.display = t === tab ? '' : 'none';
+                document.getElementById('tab-' + t).classList.toggle('active', t === name);
+                document.getElementById('panel-' + t).style.display = t === name ? '' : 'none';
             });
         }
 
+        // ── UTILS ─────────────────────────────────────────────────────────────────
+        function show(id, visible) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = visible ? '' : 'none';
+        }
+
         function esc(s) {
-            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
         }
 
         function toast(msg, type = '') {
             const t = document.getElementById('toast');
-            t.textContent = msg; t.className = 'show ' + type;
+            t.textContent = msg;
+            t.className = 'show ' + type;
             setTimeout(() => t.className = '', 3200);
         }
 
+        // ── BOOT ──────────────────────────────────────────────────────────────────
         init();
         setInterval(checkHub, 15000);
-        setInterval(() => { if (isAdmin) loadDevices(); }, 10000);
+        setInterval(() => { if (is_admin) loadAdminDevices(); }, 10000);
     </script>
 </body>
 
