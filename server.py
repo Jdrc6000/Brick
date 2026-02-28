@@ -1,6 +1,9 @@
-import socket, logging, requests
+import json
+import socket
+import logging
+import requests
 from functools import wraps
-from flask import Flask, request, jsonify, render_template, abort
+from flask import Flask, request, jsonify, render_template, abort, Response, stream_with_context
 from devices import get_device
 from tools.builtins import (
     GetCpuUsage, GetMemoryUsage, GetDiskUsage,
@@ -16,6 +19,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("brick")
 
 app = Flask(__name__)
+
 _agents: dict[str, Agent] = {}
 
 TOOLS = [
@@ -75,6 +79,7 @@ def index(device: dict):
 @app.route("/api/chat", methods=["POST"])
 @require_registered_device
 def chat(device: dict):
+    """Non-streaming fallback — kept for compatibility."""
     body = request.get_json(silent=True) or {}
     message = (body.get("message") or "").strip()
     if not message:
@@ -87,17 +92,53 @@ def chat(device: dict):
         log.exception("Agent error for device %s", device["name"])
         reply = f"[Error] Something broke: {e}"
         tool_calls = []
-    
+
     slim_tools = [
         {"name": tc["name"], "parameters": tc["parameters"]}
         for tc in tool_calls
     ]
-
     return jsonify({
         "reply": reply,
         "device": device["name"],
         "tool_calls": slim_tools,
     })
+
+@app.route("/api/chat/stream", methods=["POST"])
+@require_registered_device
+def chat_stream(device: dict):
+    """
+    SSE streaming endpoint. Yields newline-delimited JSON events:
+      {"type": "tool_start",  "name": str, "parameters": dict}
+      {"type": "tool_result", "name": str, "result": str}
+      {"type": "token",       "text": str}
+      {"type": "error",       "message": str}
+      {"type": "done"}
+    """
+    body = request.get_json(silent=True) or {}
+    message = (body.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "Empty message"}), 400
+
+    agent = get_agent(device)
+
+    def generate():
+        try:
+            for event in agent.stream(message):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as e:
+            log.exception("Stream error for device %s", device["name"])
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+        finally:
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        content_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        }
+    )
 
 @app.route("/api/history", methods=["GET"])
 @require_registered_device
@@ -125,12 +166,8 @@ def whoami(device: dict):
 def ollama_proxy():
     """
     Thin proxy to Ollama. Streams the response back to the client.
-    No device auth required — this is intentionally open since it's
-    only used by the forbidden page (which is already behind the 403 wall).
+    No device auth required — only used by error pages.
     """
-    import json
-    from flask import Response, stream_with_context
-
     body = request.get_json(silent=True) or {}
 
     def generate():

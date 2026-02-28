@@ -8,7 +8,6 @@ from agent.prompt_builder import PromptBuilder
 from agent.runner import AgentRunner
 import config
 
-
 class Agent:
     def __init__(
         self,
@@ -61,6 +60,16 @@ class Agent:
         tool_calls_used is a list of {"name": ..., "parameters": ..., "result": ...}.
         """
         return self.runner.run_with_tools(message)
+
+    def stream(self, message: str):
+        """
+        Generator yielding SSE event dicts as the agent works:
+          {"type": "tool_start",  "name": str, "parameters": dict}
+          {"type": "tool_result", "name": str, "result": str}
+          {"type": "token",       "text": str}
+          {"type": "done",        "tool_calls": list}
+        """
+        yield from self.runner.stream(message)
 
     def reset(self) -> None:
         self.history.clear()
