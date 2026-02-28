@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BRICK // {{ device.name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap"
         rel="stylesheet">
     <style>
@@ -487,6 +488,50 @@
             color: var(--text-dim);
             letter-spacing: 0.15em;
         }
+
+        /* Markdown rendered content */
+        .msg-body p { margin-bottom: 0.6em; }
+        .msg-body p:last-child { margin-bottom: 0; }
+        .msg-body ul, .msg-body ol { padding-left: 1.4em; margin-bottom: 0.6em; }
+        .msg-body li { margin-bottom: 0.2em; }
+        .msg-body h1, .msg-body h2, .msg-body h3 {
+            font-family: var(--mono);
+            color: var(--accent);
+            margin: 0.8em 0 0.3em;
+            letter-spacing: 0.08em;
+        }
+        .msg-body h1 { font-size: 15px; }
+        .msg-body h2 { font-size: 14px; }
+        .msg-body h3 { font-size: 13px; }
+        .msg-body table {
+            border-collapse: collapse;
+            font-size: 12px;
+            font-family: var(--mono);
+            margin: 8px 0;
+            width: 100%;
+        }
+        .msg-body th {
+            background: var(--surface2);
+            color: var(--accent);
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        .msg-body td {
+            padding: 3px 10px;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+        .msg-body blockquote {
+            border-left: 2px solid var(--accent-dim);
+            margin: 6px 0;
+            padding: 4px 12px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+        .msg-body strong { color: var(--text); }
+        .msg-body a { color: var(--accent); text-decoration: none; }
+        .msg-body a:hover { text-decoration: underline; }
     </style>
 </head>
 
@@ -618,22 +663,11 @@
 
             const body = document.createElement('div');
             body.className = 'msg-body';
-            body.innerHTML = formatContent(content);
+            body.innerHTML = marked.parse(content);
 
             msg.appendChild(roleLabel);
             msg.appendChild(body);
             return msg;
-        }
-
-        function formatContent(text) {
-            text = text.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) =>
-                `<pre>${escapeHtml(code.trim())}</pre>`
-            );
-            text = text.replace(/`([^`]+)`/g, (_, code) =>
-                `<code>${escapeHtml(code)}</code>`
-            );
-            text = text.replace(/\n/g, '<br>');
-            return text;
         }
 
         function escapeHtml(str) {
