@@ -38,27 +38,29 @@ TOOLS = [
     ListServices(), GetServiceStatus(), GetLoginHistory(), GetCronJobs(),
 ]
 
-
-def get_agent(device: dict) -> Agent:
-    """Get or create an Agent for this device."""
+def get_agent(device: dict) -> "Agent":
     session_id = f"device-{device['name']}"
     if session_id not in _agents:
-        log.info("Creating new agent session for device: %s", device["name"])
-        agent = Agent(session_id=session_id, resume=True)
+        log.info(
+            "Creating new agent session for device: %s (remote ip: %s)",
+            device["name"], device["ip"],
+        )
+        agent = Agent(
+            session_id=session_id,
+            resume=True,
+            device_ip=device["ip"],
+        )
         agent.register_tools(*TOOLS)
         _agents[session_id] = agent
     return _agents[session_id]
 
-
 def get_client_ip() -> str:
-    """Extract the real client IP, respecting X-Forwarded-For if behind a proxy."""
     if request.headers.get("X-Forwarded-For"):
         return request.headers["X-Forwarded-For"].split(",")[0].strip()
     return request.remote_addr
 
 
 def resolve_hostname(ip: str) -> str | None:
-    """Attempt reverse DNS lookup."""
     try:
         return socket.gethostbyaddr(ip)[0]
     except (socket.herror, socket.gaierror):
@@ -66,7 +68,6 @@ def resolve_hostname(ip: str) -> str | None:
 
 
 def require_registered_device(f):
-    """Decorator: reject requests from unregistered IPs."""
     @wraps(f)
     def decorated(*args, **kwargs):
         ip = get_client_ip()
@@ -79,16 +80,11 @@ def require_registered_device(f):
         return f(*args, device=device, **kwargs)
     return decorated
 
-
-# ---------------------------------------------------------------------------
 # Routes
-# ---------------------------------------------------------------------------
-
 @app.route("/")
 @require_registered_device
 def index(device: dict):
     return render_template("index.html", device=device)
-
 
 @app.route("/api/chat", methods=["POST"])
 @require_registered_device
@@ -107,14 +103,12 @@ def chat(device: dict):
 
     return jsonify({"reply": reply, "device": device["name"]})
 
-
 @app.route("/api/history", methods=["GET"])
 @require_registered_device
 def history(device: dict):
     agent = get_agent(device)
     messages = agent.history.as_chat_messages()
     return jsonify({"history": messages, "device": device["name"]})
-
 
 @app.route("/api/reset", methods=["POST"])
 @require_registered_device
@@ -125,20 +119,17 @@ def reset(device: dict):
     _agents.pop(session_id, None)
     return jsonify({"ok": True, "device": device["name"]})
 
-
 @app.route("/api/whoami", methods=["GET"])
 @require_registered_device
 def whoami(device: dict):
     ip = get_client_ip()
     return jsonify({"device": device, "ip": ip})
 
-
 @app.errorhandler(403)
 def forbidden(e):
     ip = get_client_ip()
     hostname = resolve_hostname(ip)
     return render_template("forbidden.html", ip=ip, hostname=hostname), 403
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)

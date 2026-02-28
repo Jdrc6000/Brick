@@ -1,5 +1,5 @@
 from tools.registry import ToolRegistry
-from tools.executor import ToolExecutor
+from tools.remote_executor import RemoteToolExecutor
 from tools.base import BaseTool
 from memory.short_term import ShortTermMemory
 from history.conversation import ConversationHistory
@@ -14,24 +14,27 @@ class Agent:
         session_id: str = "default",
         model: str = config.OLLAMA_MODEL,
         resume: bool = True,
+        device_ip: str = None,
     ):
         self.session_id = session_id
         self.model = model
+        self.device_ip = device_ip
 
-        # --- Wiring ---
         self.registry = ToolRegistry()
-        self.executor = ToolExecutor(self.registry)
+        self.executor = RemoteToolExecutor(self.registry, device_ip=device_ip)
 
         store = HistoryStore()
         self.history = ConversationHistory(session_id, store)
-
         self.memory = ShortTermMemory()
+
         if resume and len(self.history) > 0:
             self.memory.load_from(self.history.as_chat_messages())
             print(f"[Agent] Resumed session '{session_id}' ({len(self.history)} messages)")
 
-        self.prompt_builder = PromptBuilder(self.registry)
+        if device_ip:
+            print(f"[Agent] Remote execution target: {device_ip}:{7700}")
 
+        self.prompt_builder = PromptBuilder(self.registry)
         self.runner = AgentRunner(
             prompt_builder=self.prompt_builder,
             executor=self.executor,
