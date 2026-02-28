@@ -691,18 +691,6 @@
             color: var(--red);
         }
 
-        .scan-line {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(232, 160, 32, .3), transparent);
-            animation: scan 4s linear infinite;
-            pointer-events: none;
-            z-index: 9999;
-        }
-
         @keyframes scan {
             from {
                 top: 0
@@ -716,7 +704,6 @@
 </head>
 
 <body>
-    <div class="scan-line"></div>
     <div id="root">
 
         <header>
