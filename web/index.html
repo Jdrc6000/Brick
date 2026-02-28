@@ -22,7 +22,6 @@
             --red: #e03030;
             --green: #28a060;
             --green2: #38c878;
-            --blue: #2080e0;
             --dim: #4a5568;
             --text: #c8d4e0;
             --text2: #7a8fa0;
@@ -56,7 +55,15 @@
             height: 100vh;
         }
 
-        /* Header */
+        #root.no-admin {
+            grid-template-columns: 0px 1fr 0px;
+        }
+
+        #root.no-admin #sidebar,
+        #root.no-admin #right-panel {
+            display: none;
+        }
+
         header {
             grid-column: 1/-1;
             background: var(--bg2);
@@ -127,39 +134,34 @@
             }
         }
 
-        /* Admin key bar in header */
-        .admin-key-bar {
+        .identity-pill {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text2);
             display: flex;
             align-items: center;
             gap: 8px;
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
         }
 
-        .admin-key-bar label {
+        .identity-pill .device-label {
+            color: var(--amber);
+            font-weight: bold;
+        }
+
+        .admin-badge {
             font-family: var(--mono);
             font-size: 10px;
-            color: var(--dim);
-            white-space: nowrap;
-            letter-spacing: .08em;
-        }
-
-        #admin-key-input {
-            background: var(--bg);
-            border: 1px solid var(--border2);
+            color: var(--amber);
+            background: rgba(232, 160, 32, .1);
+            border: 1px solid rgba(232, 160, 32, .3);
+            padding: 2px 8px;
             border-radius: 2px;
-            padding: 4px 10px;
-            color: var(--text);
-            font-family: var(--mono);
-            font-size: 11px;
-            outline: none;
-            width: 200px;
-            transition: border-color .15s;
+            letter-spacing: .1em;
         }
 
-        #admin-key-input:focus {
-            border-color: var(--amber);
-        }
-
-        /* Sidebar */
         #sidebar {
             background: var(--panel);
             border-right: 1px solid var(--border);
@@ -242,7 +244,6 @@
             border-radius: 2px;
         }
 
-        /* Main */
         #main {
             display: flex;
             flex-direction: column;
@@ -484,7 +485,38 @@
             text-transform: uppercase;
         }
 
-        /* Right panel */
+        .unknown-splash {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .unknown-splash .big-icon {
+            font-size: 48px;
+            opacity: .2;
+        }
+
+        .unknown-splash .title {
+            font-family: var(--sans);
+            font-weight: 900;
+            font-size: 20px;
+            letter-spacing: .2em;
+            color: var(--red);
+            text-transform: uppercase;
+        }
+
+        .unknown-splash .sub {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--dim);
+            text-align: center;
+            line-height: 1.8;
+            max-width: 280px;
+        }
+
         #right-panel {
             background: var(--panel);
             border-left: 1px solid var(--border);
@@ -537,7 +569,6 @@
             background: var(--border2);
         }
 
-        /* Device cards in admin panel */
         .section-title {
             font-family: var(--sans);
             font-size: 11px;
@@ -617,7 +648,6 @@
             border-radius: 2px;
         }
 
-        /* Setup code blocks */
         .setup-block {
             background: var(--bg);
             border: 1px solid var(--border);
@@ -657,7 +687,6 @@
             line-height: 1.8;
         }
 
-        /* Toast */
         #toast {
             position: fixed;
             bottom: 20px;
@@ -681,11 +710,6 @@
             transform: translateY(0);
         }
 
-        #toast.success {
-            border-color: var(--green);
-            color: var(--green2);
-        }
-
         #toast.error {
             border-color: var(--red);
             color: var(--red);
@@ -705,12 +729,11 @@
 
 <body>
     <div id="root">
-
         <header>
             <div class="logo">BRICK <span>// SYSTEMS</span></div>
-            <div class="admin-key-bar">
-                <label>ADMIN KEY</label>
-                <input type="password" id="admin-key-input" placeholder="enter admin key..." oninput="onAdminKey()">
+            <div class="identity-pill" id="identity-pill" style="display:none">
+                <span>CONNECTED AS</span>
+                <span class="device-label" id="identity-label">—</span>
             </div>
             <div class="header-right">
                 <div class="status-pill">
@@ -725,24 +748,22 @@
 
         <nav id="sidebar">
             <div class="sidebar-label">Devices</div>
-            <div class="device-list" id="device-list">
-                <div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:6px 4px">Enter admin key →
-                </div>
-            </div>
+            <div class="device-list" id="device-list"></div>
         </nav>
 
         <main id="main">
+            <div class="unknown-splash" id="unknown-splash" style="display:none">
+                <div class="big-icon">⬡</div>
+                <div class="title">Unrecognised Device</div>
+                <div class="sub" id="unknown-ip-text"></div>
+            </div>
             <div class="chat-header" id="chat-header" style="display:none">
                 <div class="chat-device-name" id="chat-device-name">—</div>
                 <div class="chat-device-meta" id="chat-device-meta"></div>
             </div>
             <div class="no-device" id="no-device">
                 <div class="no-device-icon">⬡</div>
-                <div class="no-device-text">Select a device</div>
-                <div
-                    style="font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;max-width:220px;line-height:1.8">
-                    Enter your admin key, then pick a device from the sidebar.
-                </div>
+                <div class="no-device-text">Identifying...</div>
             </div>
             <div id="messages" style="display:none"></div>
             <div class="chat-input-row" id="chat-input-row" style="display:none">
@@ -757,39 +778,40 @@
                 <div class="panel-tab active" id="tab-devices" onclick="switchTab('devices')">Devices</div>
                 <div class="panel-tab" id="tab-setup" onclick="switchTab('setup')">Setup</div>
             </div>
-
             <div class="panel-body" id="panel-devices">
                 <div class="section-title">Configured Devices</div>
-                <div id="admin-device-list">
-                    <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Enter admin key in the header.
-                    </div>
-                </div>
+                <div id="admin-device-list"></div>
             </div>
-
             <div class="panel-body" id="panel-setup" style="display:none">
                 <div class="setup-block">
                     <div class="setup-title">1. Define Your Devices</div>
                     <div class="setup-desc">Edit <code style="color:var(--amber)">devices.py</code> on the server:</div>
                     <div class="code-block">DEVICES = [
                         {
-                        "name": "raspberrypi",
+                        "name": "my-machine",
                         "ip": "192.168.1.10",
-                        "description": "Living room Pi",
-                        "tags": ["pi", "home"],
+                        "description": "My desktop",
+                        "tags": ["linux"],
+                        "admin": True, # gets sidebar + device panel
                         },
-                        ...
+                        {
+                        "name": "server-01",
+                        "ip": "192.168.1.20",
+                        "description": "Home server",
+                        "tags": ["linux"],
+                        # no admin flag — just their own chat
+                        },
                         ]</div>
                 </div>
                 <div class="setup-block">
                     <div class="setup-title">2. Start Hub</div>
-                    <div class="code-block">BRICK_ADMIN_KEY=yourpassword \
-                        uvicorn server.app:app \
+                    <div class="code-block">uvicorn server.app:app \
                         --host 0.0.0.0 --port 8000</div>
                 </div>
                 <div class="setup-block">
                     <div class="setup-title">3. Run Local Agent</div>
                     <div class="setup-desc">Copy <code style="color:var(--amber)">local_agent/local_agent.py</code> to
-                        each machine. No keys needed — the hub identifies it by IP.</div>
+                        each machine.</div>
                     <div class="code-block">BRICK_PROJECT_ROOT=/path/to/brick \
                         python local_agent.py</div>
                 </div>
@@ -812,27 +834,41 @@
     <div id="toast"></div>
 
     <script>
-        const HUB = '';  // same origin; change to 'http://your-pi:8000' if needed
-        let adminKey = '';
+        const HUB = '';
         let selectedDevice = null;
+        let selfDevice = null;
+        let isAdmin = false;
 
-        function toast(msg, type = '') {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.className = 'show ' + type;
-            setTimeout(() => t.className = '', 3200);
-        }
+        async function init() {
+            await checkHub();
+            try {
+                const r = await fetch(HUB + '/whoami');
+                const data = await r.json();
 
-        function switchTab(tab) {
-            ['devices', 'setup'].forEach(t => {
-                document.getElementById('tab-' + t).classList.toggle('active', t === tab);
-                document.getElementById('panel-' + t).style.display = t === tab ? '' : 'none';
-            });
-        }
+                if (!data.known) {
+                    document.getElementById('no-device').style.display = 'none';
+                    document.getElementById('unknown-splash').style.display = '';
+                    document.getElementById('unknown-ip-text').textContent =
+                        `Your IP (${data.ip}) is not registered in devices.py. Add it to gain access.`;
+                    document.getElementById('root').classList.add('no-admin');
+                    return;
+                }
 
-        function onAdminKey() {
-            adminKey = document.getElementById('admin-key-input').value.trim();
-            if (adminKey) loadDevices();
+                selfDevice = data;
+                isAdmin = data.admin === true;
+
+                document.getElementById('identity-pill').style.display = '';
+                document.getElementById('identity-label').textContent = data.name.toUpperCase();
+
+                if (isAdmin) {
+                    loadDevices();
+                } else {
+                    document.getElementById('root').classList.add('no-admin');
+                    openChat(selfDevice);
+                }
+            } catch (e) {
+                document.getElementById('no-device').querySelector('.no-device-text').textContent = 'Could not identify device';
+            }
         }
 
         async function checkHub() {
@@ -854,13 +890,9 @@
         }
 
         async function loadDevices() {
-            if (!adminKey) return;
             try {
-                const r = await fetch(HUB + '/admin/devices', { headers: { 'X-Admin-Key': adminKey } });
-                if (!r.ok) {
-                    toast('Bad admin key', 'error');
-                    return;
-                }
+                const r = await fetch(HUB + '/admin/devices');
+                if (!r.ok) { toast('Failed to load devices', 'error'); return; }
                 const data = await r.json();
                 renderSidebar(data.devices);
                 renderAdminPanel(data.devices);
@@ -869,44 +901,44 @@
 
         function renderSidebar(devices) {
             const el = document.getElementById('device-list');
-            if (!devices.length) {
-                el.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--dim);padding:4px">No devices in devices.py</div>';
-                return;
-            }
             el.innerHTML = devices.map(d => `
-      <div class="device-item ${selectedDevice?.name === d.name ? 'active' : ''}"
-           onclick='selectDevice(${JSON.stringify(d).replace(/'/g, "&#39;")})'>
-        <div class="device-dot ${d.online ? 'online' : ''}"></div>
-        <div class="device-name">${esc(d.name)}</div>
-        ${d.tags?.length ? `<div class="device-tag">${esc(d.tags[0])}</div>` : ''}
-      </div>
-    `).join('');
+          <div class="device-item ${selectedDevice?.name === d.name ? 'active' : ''}"
+               onclick='selectDevice(${JSON.stringify(d).replace(/'/g, "&#39;")})'>
+            <div class="device-dot ${d.online ? 'online' : ''}"></div>
+            <div class="device-name">${esc(d.name)}</div>
+            ${d.tags?.length ? `<div class="device-tag">${esc(d.tags[0])}</div>` : ''}
+          </div>
+        `).join('');
+
+            // Auto-open admin's own device if nothing selected yet
+            if (!selectedDevice) {
+                const own = devices.find(d => d.name === selfDevice?.name);
+                if (own) selectDevice(own);
+            }
         }
 
         function renderAdminPanel(devices) {
-            const el = document.getElementById('admin-device-list');
-            if (!devices.length) {
-                el.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--dim)">No devices configured.</div>';
-                return;
-            }
-            el.innerHTML = devices.map(d => `
-      <div class="device-card ${d.online ? 'online' : ''}">
-        <div class="dc-header">
-          <div class="dc-name">${esc(d.name)}</div>
-          <div class="dc-status ${d.online ? 'online' : 'offline'}">${d.online ? 'ONLINE' : 'OFFLINE'}</div>
-        </div>
-        <div class="dc-meta">
-          IP: ${esc(d.ip)}<br>
-          ${d.description ? esc(d.description) : ''}
-        </div>
-        ${d.tags?.length ? `<div class="dc-tags">${d.tags.map(t => `<div class="dc-tag">${esc(t)}</div>`).join('')}</div>` : ''}
-      </div>
-    `).join('');
+            document.getElementById('admin-device-list').innerHTML = devices.map(d => `
+          <div class="device-card ${d.online ? 'online' : ''}">
+            <div class="dc-header">
+              <div class="dc-name">${esc(d.name)}</div>
+              <div class="dc-status ${d.online ? 'online' : 'offline'}">${d.online ? 'ONLINE' : 'OFFLINE'}</div>
+            </div>
+            <div class="dc-meta">IP: ${esc(d.ip)}<br>${d.description ? esc(d.description) : ''}</div>
+            ${d.tags?.length ? `<div class="dc-tags">${d.tags.map(t => `<div class="dc-tag">${esc(t)}</div>`).join('')}</div>` : ''}
+          </div>
+        `).join('');
         }
 
         function selectDevice(device) {
             selectedDevice = device;
+            openChat(device);
+            loadDevices();
+        }
+
+        function openChat(device) {
             document.getElementById('no-device').style.display = 'none';
+            document.getElementById('unknown-splash').style.display = 'none';
             document.getElementById('messages').style.display = '';
             document.getElementById('chat-input-row').style.display = '';
             document.getElementById('chat-header').style.display = '';
@@ -914,18 +946,15 @@
             document.getElementById('chat-device-meta').textContent =
                 [device.description, device.ip].filter(Boolean).join(' — ');
             document.getElementById('messages').innerHTML = '';
-            addSysMsg(`Session started · ${device.name} · ${device.ip}`);
-            loadDevices(); // refresh active state
+            addSysMsg(`Session started · ${device.name} · ${device.ip || ''}`);
+            selectedDevice = device;
         }
 
         function addMessage(role, text) {
             const msgs = document.getElementById('messages');
             const div = document.createElement('div');
             div.className = 'message ' + role;
-            div.innerHTML = `
-      <div class="msg-label">${role === 'user' ? 'YOU' : 'BRICK'}</div>
-      <div class="msg-bubble">${esc(text)}</div>
-    `;
+            div.innerHTML = `<div class="msg-label">${role === 'user' ? 'YOU' : 'BRICK'}</div><div class="msg-bubble">${esc(text)}</div>`;
             msgs.appendChild(div);
             msgs.scrollTop = msgs.scrollHeight;
         }
@@ -944,18 +973,14 @@
             const div = document.createElement('div');
             div.className = 'message assistant';
             div.id = 'thinking';
-            div.innerHTML = `
-      <div class="msg-label">BRICK</div>
-      <div class="thinking">PROCESSING <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div>
-    `;
+            div.innerHTML = `<div class="msg-label">BRICK</div><div class="thinking">PROCESSING <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span></div>`;
             msgs.appendChild(div);
             msgs.scrollTop = msgs.scrollHeight;
             return div;
         }
 
         async function sendMessage() {
-            if (!selectedDevice) { toast('Select a device first', 'error'); return; }
-            if (!adminKey) { toast('Enter admin key', 'error'); return; }
+            if (!selectedDevice) { toast('No device selected', 'error'); return; }
             const input = document.getElementById('chat-input');
             const msg = input.value.trim();
             if (!msg) return;
@@ -967,7 +992,7 @@
             try {
                 const r = await fetch(HUB + '/chat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: msg, device_name: selectedDevice.name }),
                 });
                 thinking.remove();
@@ -979,7 +1004,7 @@
                 addSysMsg('Connection error: ' + e.message);
             }
             document.getElementById('send-btn').disabled = false;
-            input.focus();
+            document.getElementById('chat-input').focus();
         }
 
         function handleKey(e) {
@@ -989,13 +1014,26 @@
             ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
         }
 
+        function switchTab(tab) {
+            ['devices', 'setup'].forEach(t => {
+                document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+                document.getElementById('panel-' + t).style.display = t === tab ? '' : 'none';
+            });
+        }
+
         function esc(s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        checkHub();
+        function toast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.className = 'show ' + type;
+            setTimeout(() => t.className = '', 3200);
+        }
+
+        init();
         setInterval(checkHub, 15000);
-        setInterval(() => { if (adminKey) loadDevices(); }, 10000);
+        setInterval(() => { if (isAdmin) loadDevices(); }, 10000);
     </script>
 </body>
 

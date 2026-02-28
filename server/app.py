@@ -1,47 +1,60 @@
 import os
-from fastapi import FastAPI, HTTPException, Request, Header
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-
 from devices import DEVICES, DEVICE_BY_IP
 from server.sessions import SessionManager
-
-ADMIN_KEY = os.environ.get("BRICK_ADMIN_KEY", "admin")
 
 sessions = SessionManager()
 
 app = FastAPI(title="Brick Hub")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-def get_device_for_request(request: Request) -> dict:
-    client_ip = request.client.host
-
-    # Support X-Forwarded-For if behind a proxy
+def _get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        client_ip = forwarded.split(",")[0].strip()
+        return forwarded.split(",")[0].strip()
+    return request.client.host
 
-    device = DEVICE_BY_IP.get(client_ip)
+def get_device(request: Request) -> dict:
+    device = DEVICE_BY_IP.get(_get_client_ip(request))
     if not device:
-        raise HTTPException(status_code=403, detail=f"Unknown device IP: {client_ip}")
+        raise HTTPException(status_code=403, detail=f"Unknown device: {_get_client_ip(request)}")
     return device
 
+def get_admin_device(request: Request) -> dict:
+    device = get_device(request)
+    if not device.get("admin"):
+        raise HTTPException(status_code=403, detail="Not an admin device")
+    return device
 
-def require_admin(x_admin_key: str = Header(...)):
-    if x_admin_key != ADMIN_KEY:
-        raise HTTPException(status_code=403, detail="Invalid admin key")
+@app.get("/whoami")
+async def whoami(request: Request):
+    ip = _get_client_ip(request)
+    device = DEVICE_BY_IP.get(ip)
+    if not device:
+        return {"known": False, "ip": ip}
+    return {
+        "known": True,
+        "ip": ip,
+        "name": device["name"],
+        "description": device.get("description", ""),
+        "tags": device.get("tags", []),
+        "admin": device.get("admin", False),
+    }
 
 class ChatRequest(BaseModel):
     message: str
     device_name: str
 
-
 @app.post("/chat")
-async def chat(req: ChatRequest, x_admin_key: str = Header(...)):
-    """Web UI chats with a named device. Protected by admin key."""
-    require_admin(x_admin_key)
+async def chat(req: ChatRequest, request: Request):
+    requester = get_device(request)  # must be a known device
+
+    # Admin can chat to any device; non-admin can only chat as themselves
+    if not requester.get("admin") and requester["name"] != req.device_name:
+        raise HTTPException(status_code=403, detail="Non-admin devices can only chat as themselves")
 
     device = next((d for d in DEVICES if d["name"] == req.device_name), None)
     if not device:
@@ -60,8 +73,7 @@ class ToolRequest(BaseModel):
 
 @app.post("/agent/run")
 async def agent_run(req: ToolRequest, request: Request):
-    """Called by local agents to run a tool. Auth by IP match."""
-    device = get_device_for_request(request)
+    device = get_device(request)
     agent = sessions.get_or_create(device)
     try:
         result = agent.executor.execute({"name": req.tool, "parameters": req.params})
@@ -78,9 +90,8 @@ async def status():
     }
 
 @app.get("/admin/devices")
-async def list_devices(x_admin_key: str = Header(...)):
-    require_admin(x_admin_key)
-    # Return devices with online status (whether a session exists)
+async def list_devices(request: Request):
+    get_admin_device(request)  # 403 if not admin IP
     active = set(sessions.active_sessions())
     return {
         "devices": [
@@ -90,8 +101,8 @@ async def list_devices(x_admin_key: str = Header(...)):
     }
 
 @app.get("/admin/sessions")
-async def list_sessions(x_admin_key: str = Header(...)):
-    require_admin(x_admin_key)
+async def list_sessions(request: Request):
+    get_admin_device(request)
     return {"active_sessions": sessions.active_sessions()}
 
 _web_dir = os.path.join(os.path.dirname(__file__), "..", "web")
