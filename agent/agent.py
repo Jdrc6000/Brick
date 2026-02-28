@@ -8,6 +8,7 @@ from agent.prompt_builder import PromptBuilder
 from agent.runner import AgentRunner
 import config
 
+
 class Agent:
     def __init__(
         self,
@@ -19,10 +20,8 @@ class Agent:
         self.session_id = session_id
         self.model = model
         self.device_ip = device_ip
-
         self.registry = ToolRegistry()
         self.executor = RemoteToolExecutor(self.registry, device_ip=device_ip)
-
         store = HistoryStore()
         self.history = ConversationHistory(session_id, store)
         self.memory = ShortTermMemory()
@@ -53,7 +52,15 @@ class Agent:
         return self
 
     def chat(self, message: str) -> str:
+        """Run the agent and return only the final text response."""
         return self.runner.run(message)
+
+    def chat_with_tools(self, message: str) -> tuple[str, list[dict]]:
+        """
+        Run the agent and return (reply_text, tool_calls_used).
+        tool_calls_used is a list of {"name": ..., "parameters": ..., "result": ...}.
+        """
+        return self.runner.run_with_tools(message)
 
     def reset(self) -> None:
         self.history.clear()

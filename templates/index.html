@@ -21,11 +21,15 @@
             --bg: #0a0c0f;
             --surface: #0e1116;
             --surface2: #141820;
+            --surface3: #0c1a14;
             --border: #1e2530;
             --border-bright: #2a3545;
             --accent: #00e5a0;
             --accent-dim: #00a87088;
             --accent-glow: #00e5a022;
+            --tool-accent: #f0b429;
+            --tool-accent-dim: #f0b42944;
+            --tool-border: #2a2010;
             --danger: #ff4455;
             --muted: #4a5568;
             --text: #c8d6e5;
@@ -179,9 +183,11 @@
             background: var(--border);
         }
 
-        .msg {
+        /* Message group: tool strip + assistant bubble sit together */
+        .msg-group {
             display: flex;
-            gap: 12px;
+            flex-direction: column;
+            gap: 6px;
             animation: fadeIn 0.2s ease;
         }
 
@@ -195,6 +201,11 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        .msg {
+            display: flex;
+            gap: 12px;
         }
 
         .msg-role {
@@ -249,6 +260,80 @@
             margin: 8px 0;
             line-height: 1.5;
             color: #a8c4d8;
+        }
+
+        /* ── Tool call strip ───────────────────────────────────────── */
+        .tool-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding-left: 64px;
+            /* aligns with msg-body (52px role + 12px gap) */
+        }
+
+        .tool-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface3);
+            border: 1px solid var(--tool-border);
+            border-left: 2px solid var(--tool-accent);
+            padding: 3px 10px 3px 8px;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--tool-accent);
+            letter-spacing: 0.05em;
+            cursor: default;
+            transition: background 0.15s, border-color 0.15s;
+            position: relative;
+        }
+
+        .tool-pill:hover {
+            background: #0f2218;
+            border-color: var(--tool-accent);
+        }
+
+        .tool-pill .tool-icon {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .tool-pill .tool-name {
+            color: var(--tool-accent);
+        }
+
+        /* Params tooltip on hover */
+        .tool-pill .tool-params {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 0;
+            z-index: 50;
+            background: #0e1510;
+            border: 1px solid var(--tool-accent);
+            padding: 8px 12px;
+            font-size: 10px;
+            color: #c8d6e5;
+            white-space: pre;
+            min-width: 180px;
+            max-width: 360px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            line-height: 1.6;
+        }
+
+        .tool-pill:hover .tool-params {
+            display: block;
+        }
+
+        /* tiny triangle */
+        .tool-pill .tool-params::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 14px;
+            border: 5px solid transparent;
+            border-top-color: var(--tool-accent);
         }
 
         /* Typing indicator */
@@ -439,29 +524,93 @@
         const messagesEl = document.getElementById('messages');
         const inputEl = document.getElementById('input');
         const sendBtn = document.getElementById('sendBtn');
-        const emptyState = document.getElementById('emptyState');
 
-        // Load history on start
-        async function loadHistory() {
-            try {
-                const res = await fetch('/api/history');
-                const data = await res.json();
-                if (data.history && data.history.length > 0) {
-                    emptyState.remove();
-                    data.history.forEach(m => appendMessage(m.role, m.content, false));
-                    scrollBottom();
-                }
-            } catch (e) {
-                console.error('Failed to load history', e);
-            }
+        // ── Tool name → display label + icon mapping ──────────────────
+        const TOOL_META = {
+            get_cpu_usage: { icon: '⚙', label: 'CPU Usage' },
+            get_memory_usage: { icon: '🧠', label: 'Memory' },
+            get_disk_usage: { icon: '💾', label: 'Disk Usage' },
+            get_system_info: { icon: '🖥', label: 'System Info' },
+            get_temperatures: { icon: '🌡', label: 'Temperatures' },
+            get_inode_usage: { icon: '📁', label: 'Inode Usage' },
+            list_processes: { icon: '📋', label: 'List Processes' },
+            search_process: { icon: '🔍', label: 'Search Process' },
+            kill_process: { icon: '🔴', label: 'Kill Process' },
+            set_process_priority: { icon: '⚖', label: 'Set Priority' },
+            get_connections: { icon: '🔌', label: 'Connections' },
+            ping_host: { icon: '📡', label: 'Ping Host' },
+            get_network_io: { icon: '📶', label: 'Network I/O' },
+            tail_log: { icon: '📜', label: 'Tail Log' },
+            find_large_files: { icon: '🗂', label: 'Find Large Files' },
+            list_directory: { icon: '📂', label: 'List Dir' },
+            list_services: { icon: '⚡', label: 'List Services' },
+            get_service_status: { icon: '🔧', label: 'Service Status' },
+            get_login_history: { icon: '👤', label: 'Login History' },
+            get_cron_jobs: { icon: '🕐', label: 'Cron Jobs' },
+        };
+
+        function toolMeta(name) {
+            return TOOL_META[name] || { icon: '🔧', label: name };
         }
 
-        function appendMessage(role, content, animate = true) {
-            emptyState?.remove();
+        // Format params as readable key: value lines
+        function formatParams(params) {
+            if (!params || typeof params !== 'object') return '';
+            const entries = Object.entries(params);
+            if (entries.length === 0) return '(no parameters)';
+            return entries.map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n');
+        }
 
+        // ── Render a tool strip (array of {name, parameters}) ─────────
+        function buildToolStrip(toolCalls) {
+            if (!toolCalls || toolCalls.length === 0) return null;
+            const strip = document.createElement('div');
+            strip.className = 'tool-strip';
+
+            toolCalls.forEach(tc => {
+                const meta = toolMeta(tc.name);
+                const params = formatParams(tc.parameters);
+
+                const pill = document.createElement('div');
+                pill.className = 'tool-pill';
+                pill.innerHTML = `
+                    <span class="tool-icon">${meta.icon}</span>
+                    <span class="tool-name">${meta.label}</span>
+                    ${params ? `<div class="tool-params">${escapeHtml(params)}</div>` : ''}
+                `;
+                strip.appendChild(pill);
+            });
+            return strip;
+        }
+
+        // ── Core message rendering ─────────────────────────────────────
+        function appendUserMessage(content) {
+            document.getElementById('emptyState')?.remove();
+            const group = document.createElement('div');
+            group.className = 'msg-group';
+            group.appendChild(buildMsgEl('user', content));
+            messagesEl.appendChild(group);
+        }
+
+        function appendAssistantMessage(content, toolCalls, animate = true) {
+            document.getElementById('emptyState')?.remove();
+
+            const group = document.createElement('div');
+            group.className = 'msg-group';
+            if (!animate) group.style.animation = 'none';
+
+            // Tool strip first
+            const strip = buildToolStrip(toolCalls);
+            if (strip) group.appendChild(strip);
+
+            // Then the assistant bubble
+            group.appendChild(buildMsgEl('assistant', content));
+            messagesEl.appendChild(group);
+        }
+
+        function buildMsgEl(role, content) {
             const msg = document.createElement('div');
             msg.className = `msg ${role}`;
-            if (!animate) msg.style.animation = 'none';
 
             const roleLabel = document.createElement('div');
             roleLabel.className = 'msg-role';
@@ -473,30 +622,35 @@
 
             msg.appendChild(roleLabel);
             msg.appendChild(body);
-            messagesEl.appendChild(msg);
             return msg;
         }
 
         function formatContent(text) {
-            // Code blocks
-            text = text.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => {
-                return `<pre>${escapeHtml(code.trim())}</pre>`;
-            });
-            // Inline code
-            text = text.replace(/`([^`]+)`/g, (_, code) => `<code>${escapeHtml(code)}</code>`);
-            // Line breaks
+            text = text.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) =>
+                `<pre>${escapeHtml(code.trim())}</pre>`
+            );
+            text = text.replace(/`([^`]+)`/g, (_, code) =>
+                `<code>${escapeHtml(code)}</code>`
+            );
             text = text.replace(/\n/g, '<br>');
             return text;
         }
 
         function escapeHtml(str) {
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
         }
 
+        // ── Typing indicator ──────────────────────────────────────────
         function showTyping() {
+            const group = document.createElement('div');
+            group.className = 'msg-group';
+            group.id = 'typing';
+
             const msg = document.createElement('div');
             msg.className = 'msg assistant';
-            msg.id = 'typing';
 
             const roleLabel = document.createElement('div');
             roleLabel.className = 'msg-role';
@@ -504,19 +658,47 @@
 
             const body = document.createElement('div');
             body.className = 'msg-body';
-            body.innerHTML = `<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+            body.innerHTML = `<div class="typing">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>`;
 
             msg.appendChild(roleLabel);
             msg.appendChild(body);
-            messagesEl.appendChild(msg);
+            group.appendChild(msg);
+            messagesEl.appendChild(group);
             scrollBottom();
-            return msg;
+            return group;
         }
 
         function scrollBottom() {
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
+        // ── Load history on start ─────────────────────────────────────
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                if (data.history && data.history.length > 0) {
+                    document.getElementById('emptyState')?.remove();
+                    // History has no tool_calls metadata; render without strip
+                    data.history.forEach(m => {
+                        if (m.role === 'user') {
+                            appendUserMessage(m.content);
+                        } else if (m.role === 'assistant') {
+                            appendAssistantMessage(m.content, [], false);
+                        }
+                    });
+                    scrollBottom();
+                }
+            } catch (e) {
+                console.error('Failed to load history', e);
+            }
+        }
+
+        // ── Send message ──────────────────────────────────────────────
         async function sendMessage() {
             const message = inputEl.value.trim();
             if (!message) return;
@@ -525,7 +707,7 @@
             autoResize();
             sendBtn.disabled = true;
 
-            appendMessage('user', message);
+            appendUserMessage(message);
             scrollBottom();
 
             const typingEl = showTyping();
@@ -538,10 +720,13 @@
                 });
                 const data = await res.json();
                 typingEl.remove();
-                appendMessage('assistant', data.reply || data.error || '...');
+                appendAssistantMessage(
+                    data.reply || data.error || '...',
+                    data.tool_calls || []
+                );
             } catch (e) {
                 typingEl.remove();
-                appendMessage('assistant', `[Connection error: ${e.message}]`);
+                appendAssistantMessage(`[Connection error: ${e.message}]`, []);
             } finally {
                 sendBtn.disabled = false;
                 inputEl.focus();
@@ -549,23 +734,24 @@
             }
         }
 
+        // ── Reset ─────────────────────────────────────────────────────
         async function clearHistory() {
             if (!confirm('Clear conversation history?')) return;
             await fetch('/api/reset', { method: 'POST' });
             messagesEl.innerHTML = `
-      <div class="empty-state" id="emptyState">
-        <div class="big">█</div>
-        <p>SESSION CLEARED. WAITING FOR INPUT, BOSS.</p>
-      </div>`;
+                <div class="empty-state" id="emptyState">
+                    <div class="big">█</div>
+                    <p>SESSION CLEARED. WAITING FOR INPUT, BOSS.</p>
+                </div>`;
         }
 
+        // ── Textarea auto-resize ──────────────────────────────────────
         function autoResize() {
             inputEl.style.height = 'auto';
             inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
         }
-
         inputEl.addEventListener('input', autoResize);
-        inputEl.addEventListener('keydown', (e) => {
+        inputEl.addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();

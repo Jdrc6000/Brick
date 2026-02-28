@@ -23,14 +23,30 @@ class AgentRunner:
         self.max_iterations = max_iterations
 
     def run(self, user_input: str) -> str:
+        """Run the agent and return the final text response."""
+        final, _ = self.run_with_tools(user_input)
+        return final
+
+    def run_with_tools(self, user_input: str) -> tuple[str, list[dict]]:
+        """
+        Run the agent and return (final_text, tool_calls_used).
+
+        Each entry in tool_calls_used is:
+            {
+                "name": str,          # tool function name
+                "parameters": dict,   # arguments passed
+                "result": str,        # raw result string
+            }
+        """
         self.history.append("user", user_input)
         self.memory.add("user", user_input)
-        
+
         system_prompt = self.prompt_builder.system_prompt()
         tools = self.executor.registry.all_ollama_schemas()
-        
         messages = [{"role": "system", "content": system_prompt}] + self.memory.get()
-        
+
+        tool_calls_used: list[dict] = []
+
         for iteration in range(self.max_iterations):
             response = ollama.chat(
                 model=self.model,
@@ -38,8 +54,8 @@ class AgentRunner:
                 tools=tools if tools else None,
                 options={"temperature": 0.7},
             )
-
             msg = response["message"]
+
             if msg.get("tool_calls"):
                 messages.append(msg)
                 self.memory.add_raw(msg)
@@ -52,9 +68,14 @@ class AgentRunner:
                     tool_params = fn["arguments"]
 
                     print(f"  [Runner] Tool call: {tool_name}({tool_params})")
-
                     result = self.executor.execute({"name": tool_name, "parameters": tool_params})
-                    #print(f"  [Runner] Tool result: {result}") # removed -> bloated output
+
+                    # Record for the caller
+                    tool_calls_used.append({
+                        "name": tool_name,
+                        "parameters": tool_params,
+                        "result": result,
+                    })
 
                     tool_msg = {
                         "role": "tool",
@@ -62,7 +83,7 @@ class AgentRunner:
                     }
                     if tool_call_id := tool_call.get("id"):
                         tool_msg["tool_call_id"] = tool_call_id
-                    
+
                     messages.append(tool_msg)
                     self.memory.add_raw(tool_msg)
                     self.history.append("tool", f"[Tool: {tool_name}] {result}")
@@ -71,9 +92,9 @@ class AgentRunner:
                 final = (msg.get("content") or "").strip()
                 self.history.append("assistant", final)
                 self.memory.add("assistant", final)
-                return final
+                return final, tool_calls_used
 
         final = (msg.get("content") or "").strip()
         self.history.append("assistant", final)
         self.memory.add("assistant", final)
-        return final
+        return final, tool_calls_used

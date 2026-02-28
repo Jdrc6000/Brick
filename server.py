@@ -1,15 +1,7 @@
-"""
-Brick — Systems Administration Assistant
-Flask web server for Raspberry Pi deployment.
-Access is restricted to registered devices (by IP/hostname).
-Each device gets its own persistent conversation session.
-"""
-
 import socket
 import logging
 from functools import wraps
 from flask import Flask, request, jsonify, render_template, abort
-
 from devices import get_device
 from tools.builtins import (
     GetCpuUsage, GetMemoryUsage, GetDiskUsage,
@@ -25,8 +17,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("brick")
 
 app = Flask(__name__)
-
-# --- Agent pool: one Agent per device session (keyed by device name) ---
 _agents: dict[str, Agent] = {}
 
 TOOLS = [
@@ -59,13 +49,11 @@ def get_client_ip() -> str:
         return request.headers["X-Forwarded-For"].split(",")[0].strip()
     return request.remote_addr
 
-
 def resolve_hostname(ip: str) -> str | None:
     try:
         return socket.gethostbyaddr(ip)[0]
     except (socket.herror, socket.gaierror):
         return None
-
 
 def require_registered_device(f):
     @wraps(f)
@@ -80,7 +68,6 @@ def require_registered_device(f):
         return f(*args, device=device, **kwargs)
     return decorated
 
-# Routes
 @app.route("/")
 @require_registered_device
 def index(device: dict):
@@ -96,12 +83,22 @@ def chat(device: dict):
 
     agent = get_agent(device)
     try:
-        reply = agent.chat(message)
+        reply, tool_calls = agent.chat_with_tools(message)
     except Exception as e:
         log.exception("Agent error for device %s", device["name"])
         reply = f"[Error] Something broke: {e}"
+        tool_calls = []
+    
+    slim_tools = [
+        {"name": tc["name"], "parameters": tc["parameters"]}
+        for tc in tool_calls
+    ]
 
-    return jsonify({"reply": reply, "device": device["name"]})
+    return jsonify({
+        "reply": reply,
+        "device": device["name"],
+        "tool_calls": slim_tools,
+    })
 
 @app.route("/api/history", methods=["GET"])
 @require_registered_device
@@ -132,4 +129,4 @@ def forbidden(e):
     return render_template("forbidden.html", ip=ip, hostname=hostname), 403
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=5001, debug=False)
