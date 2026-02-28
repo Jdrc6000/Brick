@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>403 — GO AWAY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0c0f;
+            --accent: #ff4455;
+            --text: #c8d6e5;
+            --dim: #4a5568;
+            --mono: 'Share Tech Mono', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--mono);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.04) 2px,
+                    rgba(0, 0, 0, 0.04) 4px);
+            pointer-events: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            animation: glitch 0.1s steps(1) infinite alternate;
+        }
+
+        @keyframes glitch {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(-1px, 0);
+            }
+
+            50% {
+                transform: translate(0, 0);
+            }
+
+            75% {
+                transform: translate(1px, 0);
+            }
+        }
+
+        .code {
+            font-size: 80px;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(255, 68, 85, 0.5);
+            animation: flicker 4s ease-in-out infinite;
+        }
+
+        @keyframes flicker {
+            0%,
+            95%,
+            100% {
+                opacity: 1;
+            }
+
+            96% {
+                opacity: 0.3;
+            }
+
+            97% {
+                opacity: 1;
+            }
+
+            98% {
+                opacity: 0.5;
+            }
+        }
+
+        .msg {
+            font-size: 14px;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+        }
+
+        .sub {
+            font-size: 11px;
+            color: var(--dim);
+            letter-spacing: 0.1em;
+        }
+
+        .identity {
+            margin-top: 10px;
+            padding: 12px 20px;
+            border: 1px solid #2a1a1f;
+            background: #110a0c;
+            font-size: 11px;
+            color: var(--dim);
+            letter-spacing: 0.08em;
+            line-height: 2;
+        }
+
+        .identity span {
+            color: #ff6677;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="code">403</div>
+        <div class="msg">WHO THE HELL ARE YOU?</div>
+        <div class="sub">THIS SYSTEM DOES NOT KNOW YOU. GO AWAY.</div>
+        <div class="identity">
+            YOUR IP: <span>{{ ip or 'unknown' }}</span><br>
+            {% if hostname %}
+            HOSTNAME: <span>{{ hostname }}</span><br>
+            {% endif %}
+            STATUS: <span>NOT REGISTERED. NOT WELCOME.</span>
+        </div>
+    </div>
+</body>
+
+</html>
