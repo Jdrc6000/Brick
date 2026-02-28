@@ -154,11 +154,24 @@ def ollama_proxy():
         content_type="application/x-ndjson",
     )
 
+@app.route("/internal", methods=["GET"])
+def internal():
+    raise RuntimeError("HELP!")
+
 @app.errorhandler(403)
 def forbidden(e):
     ip = get_client_ip()
     hostname = resolve_hostname(ip)
     return render_template("forbidden.html", ip=ip, hostname=hostname), 403
+
+@app.errorhandler(404)
+def not_found(e):
+    path = request.path
+    return render_template("not_found.html", path=path), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template("internal_error.html"), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=False)

@@ -1,0 +1,457 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 — GONE. NEVER WAS.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0c0f;
+            --accent: #f0b429;
+            --text: #c8d6e5;
+            --dim: #4a5568;
+            --bright-dim: #6b7a8d;
+            --surface: #0e1116;
+            --border: #1e2530;
+            --mono: 'Share Tech Mono', monospace;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--mono);
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+                    rgba(0, 0, 0, 0.045) 2px, rgba(0, 0, 0, 0.045) 4px);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.7) 100%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .shell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .code {
+            font-size: clamp(80px, 15vw, 140px);
+            color: var(--accent);
+            letter-spacing: 0.08em;
+            line-height: 1;
+            text-shadow: 0 0 40px rgba(240, 180, 41, 0.5), 0 0 80px rgba(240, 180, 41, 0.15);
+            animation: flicker 7s ease-in-out infinite;
+            user-select: none;
+        }
+
+        @keyframes flicker {
+
+            0%,
+            89%,
+            93%,
+            100% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 0.3;
+            }
+
+            91% {
+                opacity: 1;
+            }
+
+            92% {
+                opacity: 0.6;
+            }
+        }
+
+        .tagline {
+            font-size: 14px;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-top: 6px;
+            margin-bottom: 28px;
+            opacity: 0.7;
+        }
+
+        .path-display {
+            font-size: 11px;
+            color: var(--bright-dim);
+            letter-spacing: 0.08em;
+            line-height: 2;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .path-display .val {
+            color: #f0c060;
+        }
+
+        .terminal {
+            width: 100%;
+            max-width: 620px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--accent);
+            box-shadow: 0 0 40px rgba(240, 180, 41, 0.06), inset 0 0 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+            background: #0c0e12;
+        }
+
+        .terminal-title {
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: var(--accent);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .terminal-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .terminal-dots span:nth-child(1) {
+            background: #ff5f57;
+        }
+
+        .terminal-dots span:nth-child(2) {
+            background: #febc2e;
+        }
+
+        .terminal-dots span:nth-child(3) {
+            background: #28c840;
+        }
+
+        .terminal-body {
+            padding: 16px 18px;
+            min-height: 130px;
+        }
+
+        .terminal-prompt {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            font-size: 10px;
+            color: var(--dim);
+            letter-spacing: 0.08em;
+            flex-wrap: wrap;
+        }
+
+        .terminal-prompt .ps {
+            color: var(--accent);
+        }
+
+        .terminal-prompt .cmd {
+            color: var(--bright-dim);
+        }
+
+        .message-output {
+            font-size: 13px;
+            line-height: 1.85;
+            color: #c8d6e5;
+            min-height: 60px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background: var(--accent);
+            vertical-align: middle;
+            margin-left: 1px;
+            animation: blink-cursor 1s step-end infinite;
+        }
+
+        @keyframes blink-cursor {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .terminal-status {
+            border-top: 1px solid var(--border);
+            padding: 6px 14px;
+            font-size: 10px;
+            color: var(--dim);
+            letter-spacing: 0.1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 6px;
+            background: var(--dim);
+            vertical-align: middle;
+        }
+
+        .status-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.done {
+            background: #28c840;
+            box-shadow: 0 0 6px #28c840;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .thinking {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--dim);
+            font-size: 11px;
+            letter-spacing: 0.1em;
+        }
+
+        .thinking .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: think 1.2s ease-in-out infinite;
+        }
+
+        .thinking .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .thinking .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes think {
+
+            0%,
+            80%,
+            100% {
+                opacity: 0.2;
+                transform: scale(1);
+            }
+
+            40% {
+                opacity: 1;
+                transform: scale(1.3);
+            }
+        }
+
+        .error-msg {
+            color: var(--bright-dim);
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        .void-art {
+            font-size: 11px;
+            color: var(--dim);
+            letter-spacing: 0.3em;
+            margin-bottom: 20px;
+            opacity: 0.4;
+            animation: drift 8s ease-in-out infinite;
+        }
+
+        @keyframes drift {
+
+            0%,
+            100% {
+                opacity: 0.4;
+                letter-spacing: 0.3em;
+            }
+
+            50% {
+                opacity: 0.15;
+                letter-spacing: 0.6em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <div class="void-art">· · · · · · · · · · · · · · ·</div>
+        <div class="code">404</div>
+        <div class="tagline">GONE. NEVER WAS.</div>
+        <div class="path-display">
+            REQUESTED:&nbsp;<span class="val" id="path-display">{{ path or 'unknown' }}</span>
+            <br>STATUS:&nbsp;<span class="val">DOES NOT EXIST. DID NOT EXIST. WILL NOT EXIST.</span>
+        </div>
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="terminal-dots"><span></span><span></span><span></span></div>
+                <div class="terminal-title">BRICK // FILESYSTEM MODULE</div>
+                <div style="width:48px"></div>
+            </div>
+            <div class="terminal-body">
+                <div class="terminal-prompt">
+                    <span class="ps">brick@system</span>
+                    <span style="color:var(--dim)">~$</span>
+                    <span class="cmd">locate --exhaustive --recursive <span id="prompt-path">{{ path or 'unknown'
+                            }}</span></span>
+                </div>
+                <div class="message-output" id="output">
+                    <div class="thinking" id="thinking">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <span style="margin-left:6px">searching every corner of the filesystem</span>
+                    </div>
+                </div>
+            </div>
+            <div class="terminal-status">
+                <div>
+                    <span class="status-dot active" id="status-dot"></span>
+                    <span id="status-text">BRICK SEARCHING</span>
+                </div>
+                <div>model: ministral-3:14b-cloud</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const requestedPath = document.getElementById('path-display')?.textContent?.trim() || 'unknown';
+
+        async function generateResponse(path) {
+            const outputEl = document.getElementById('output');
+            const thinkingEl = document.getElementById('thinking');
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+
+            const payload = {
+                model: 'ministral-3:14b-cloud',
+                system: `You are Brick — a deadpan, dry, mildly exasperated systems administration assistant.
+A user requested a path that does not exist on this system.
+Tone: calm, clinical, faintly weary. Never flustered. Mildly sarcastic, like someone who has answered this question too many times.
+Write 2-4 sentences of pure prose. No lists. No headers. No markdown. No profanity.
+Acknowledge the path they requested. Make clear it doesn't exist. Make them feel mildly foolish for expecting otherwise.
+Sign off exactly as: — Brick`,
+                prompt: `The user requested this path: ${path}\n\nIt does not exist. It never did. Write a brief, dry, clinical response informing them of this.`,
+                stream: true,
+                options: { temperature: 1.2 }
+            };
+
+            try {
+                const response = await fetch('/api/ollama', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`Proxy responded ${response.status}`);
+
+                thinkingEl?.remove();
+                outputEl.textContent = '';
+                const cursor = document.createElement('span');
+                cursor.className = 'cursor';
+                outputEl.appendChild(cursor);
+                statusText.textContent = 'BRICK RESPONDING';
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const data = JSON.parse(line);
+                            if (data.error) throw new Error(data.error);
+                            if (data.response) {
+                                fullText += data.response;
+                                outputEl.textContent = fullText;
+                                outputEl.appendChild(cursor);
+                            }
+                            if (data.done) {
+                                cursor.remove();
+                                statusDot.className = 'status-dot done';
+                                statusText.textContent = 'SEARCH CONCLUDED';
+                            }
+                        } catch (_) { }
+                    }
+                }
+            } catch (err) {
+                thinkingEl?.remove();
+                statusDot.className = 'status-dot';
+                statusText.textContent = 'BRICK OFFLINE';
+                outputEl.innerHTML = `<span class="error-msg">[Brick is unavailable. The path is still gone regardless.]</span>`;
+                console.error('Ollama proxy error:', err);
+            }
+        }
+
+        generateResponse(requestedPath);
+    </script>
+</body>
+
+</html>
