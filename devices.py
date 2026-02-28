@@ -6,7 +6,7 @@ Matching is done by IP address or hostname.
 DEVICES = [
     {
         "name": "joshs-macbook",
-        "ip": "192.168.0.39",
+        "ip": "192.168.0.37",
         "description": "Josh's Macbook M4",
         "tags": ["mac", "laptop"],
     },

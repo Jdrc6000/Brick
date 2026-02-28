@@ -1,5 +1,4 @@
-import socket
-import logging
+import socket, logging, requests
 from functools import wraps
 from flask import Flask, request, jsonify, render_template, abort
 from devices import get_device
@@ -121,6 +120,39 @@ def reset(device: dict):
 def whoami(device: dict):
     ip = get_client_ip()
     return jsonify({"device": device, "ip": ip})
+
+@app.route("/api/ollama", methods=["POST"])
+def ollama_proxy():
+    """
+    Thin proxy to Ollama. Streams the response back to the client.
+    No device auth required — this is intentionally open since it's
+    only used by the forbidden page (which is already behind the 403 wall).
+    """
+    import json
+    from flask import Response, stream_with_context
+
+    body = request.get_json(silent=True) or {}
+
+    def generate():
+        try:
+            with requests.post(
+                "http://localhost:11434/api/generate",
+                json=body,
+                stream=True,
+                timeout=60,
+            ) as r:
+                for chunk in r.iter_content(chunk_size=None):
+                    if chunk:
+                        yield chunk
+        except requests.ConnectionError:
+            yield json.dumps({"error": "Ollama not reachable"}).encode()
+        except Exception as e:
+            yield json.dumps({"error": str(e)}).encode()
+
+    return Response(
+        stream_with_context(generate()),
+        content_type="application/x-ndjson",
+    )
 
 @app.errorhandler(403)
 def forbidden(e):
