@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, abort
 # ── Config ────────────────────────────────────────────────────────────────────
 
 PORT = 7700
-BRICK_SERVER_IP = "192.168.0.39"
+BRICK_SERVER_IP = "192.168.0.67"
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
