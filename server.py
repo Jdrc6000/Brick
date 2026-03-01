@@ -1,7 +1,4 @@
-import json
-import socket
-import logging
-import requests
+import json, socket, logging, requests
 from functools import wraps
 from flask import Flask, request, jsonify, render_template, abort, Response, stream_with_context
 from devices import get_device
@@ -15,12 +12,25 @@ from tools.builtins import (
     SandboxExec, SandboxInstallPackage, SandboxListFiles, SandboxReadFile, SandboxReset, SandboxStatus, SandboxWriteFile
 )
 from agent import Agent
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("brick")
-
 app = Flask(__name__)
 _agents: dict[str, Agent] = {}
+
+# Local tools instantiated once for /api/tool/local (server-side stats)
+_LOCAL_TOOLS = {
+    'get_cpu_usage':     GetCpuUsage(),
+    'get_memory_usage':  GetMemoryUsage(),
+    'get_disk_usage':    GetDiskUsage(),
+    'get_system_info':   GetSystemInfo(),
+    'get_temperatures':  GetTemperatures(),
+    'get_inode_usage':   GetInodeUsage(),
+    'list_processes':    ListProcesses(),
+    'search_process':    SearchProcess(),
+    'get_connections':   GetConnections(),
+    'ping_host':         PingHost(),
+    'get_network_io':    GetNetworkIO(),
+}
 
 TOOLS = [
     GetCpuUsage(), GetMemoryUsage(), GetDiskUsage(),
@@ -117,9 +127,7 @@ def chat_stream(device: dict):
     message = (body.get("message") or "").strip()
     if not message:
         return jsonify({"error": "Empty message"}), 400
-
     agent = get_agent(device)
-
     def generate():
         try:
             for event in agent.stream(message):
@@ -129,7 +137,6 @@ def chat_stream(device: dict):
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
         finally:
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
-
     return Response(
         stream_with_context(generate()),
         content_type="text/event-stream",
@@ -143,24 +150,18 @@ def chat_stream(device: dict):
 @require_registered_device
 def tool_exec(device: dict):
     """
-    Direct tool execution — bypasses the agent/LLM entirely.
-    Used by the Metrics and Device dashboard pages for fast data fetching.
+    Direct tool execution — routed through RemoteToolExecutor to the connected device (Mac).
+    Used by the Device Stats page for the client machine's data.
     Does NOT touch agent memory or conversation history.
-
-    Request:  {"name": "get_cpu_usage", "parameters": {}}
-    Response: {"result": <parsed object>, "error": null}
     """
     body = request.get_json(silent=True) or {}
-    name   = (body.get("name") or "").strip()
+    name = (body.get("name") or "").strip()
     params = body.get("parameters") or {}
-
     if not name:
         return jsonify({"result": None, "error": "Missing 'name' field"}), 400
-
     agent = get_agent(device)
     try:
         raw = agent.executor.execute({"name": name, "parameters": params})
-        # Try to deserialise so the client receives a real object, not a string
         try:
             import ast
             result = json.loads(raw)
@@ -172,6 +173,30 @@ def tool_exec(device: dict):
         return jsonify({"result": result, "error": None})
     except Exception as e:
         log.exception("tool_exec error for tool=%s device=%s", name, device["name"])
+        return jsonify({"result": None, "error": str(e)}), 500
+
+@app.route("/api/tool/local", methods=["POST"])
+@require_registered_device
+def tool_exec_local(device: dict):
+    """
+    Direct tool execution on the Pi server itself — always local, never proxied.
+    Used by the Server Metrics page to show the Pi's own stats.
+    Does NOT touch agent memory or conversation history.
+    """
+    body = request.get_json(silent=True) or {}
+    name   = (body.get("name") or "").strip()
+    params = body.get("parameters") or {}
+    if not name:
+        return jsonify({"result": None, "error": "Missing 'name' field"}), 400
+    tool = _LOCAL_TOOLS.get(name)
+    if not tool:
+        return jsonify({"result": None, "error": f"Tool {name!r} not available for local execution"}), 404
+    try:
+        result = tool.run(**params)
+        # result is already a dict/list from builtins — return directly
+        return jsonify({"result": result, "error": None})
+    except Exception as e:
+        log.exception("tool_exec_local error for tool=%s", name)
         return jsonify({"result": None, "error": str(e)}), 500
 
 @app.route("/api/history", methods=["GET"])
@@ -203,7 +228,6 @@ def ollama_proxy():
     No device auth required — only used by error pages.
     """
     body = request.get_json(silent=True) or {}
-
     def generate():
         try:
             with requests.post(
@@ -219,13 +243,12 @@ def ollama_proxy():
             yield json.dumps({"error": "Ollama not reachable"}).encode()
         except Exception as e:
             yield json.dumps({"error": str(e)}).encode()
-
     return Response(
         stream_with_context(generate()),
         content_type="application/x-ndjson",
     )
 
-@app.route("/internal", methods=["GET"]) # just for testing - forces runtime error to raise an internal error
+@app.route("/internal", methods=["GET"])
 def internal():
     raise RuntimeError("HELP!")
 

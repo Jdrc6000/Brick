@@ -35,6 +35,11 @@
             --text-dim: #6b7a8d;
             --mono: 'Share Tech Mono', monospace;
             --sans: 'Barlow', sans-serif;
+            --pit-accent: #f0b429;
+            --pit-dim: #2a2010;
+            --pit-glow: rgba(240, 180, 41, 0.15);
+            --server-accent: #7b8cff;
+            --server-dim: #7b8cff44;
         }
 
         html,
@@ -48,7 +53,6 @@
             overflow: hidden;
         }
 
-        /* CRT scanlines overlay */
         body::before {
             content: '';
             position: fixed;
@@ -58,14 +62,12 @@
             z-index: 9000;
         }
 
-        /* ── APP SHELL ── */
         .app {
             display: grid;
             grid-template-rows: 48px 1fr;
             height: 100vh;
         }
 
-        /* ── HEADER / NAV ── */
         header {
             display: flex;
             align-items: stretch;
@@ -150,6 +152,15 @@
             box-shadow: 0 0 8px var(--accent);
         }
 
+        .nav-tab.server-tab.active {
+            color: var(--server-accent);
+        }
+
+        .nav-tab.server-tab.active::after {
+            background: var(--server-accent);
+            box-shadow: 0 0 8px var(--server-accent);
+        }
+
         .tab-badge {
             background: var(--muted);
             color: var(--bg);
@@ -157,6 +168,24 @@
             padding: 1px 5px;
             font-weight: 700;
             letter-spacing: 0.05em;
+        }
+
+        .tab-badge.live {
+            background: var(--pit-accent);
+            color: #000;
+            animation: badge-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes badge-pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.6
+            }
         }
 
         .header-right {
@@ -216,7 +245,7 @@
             color: var(--accent);
         }
 
-        /* ── PAGES ── */
+        /* PAGES */
         .page {
             display: none;
             height: 100%;
@@ -243,9 +272,7 @@
             background: var(--border);
         }
 
-        /* ══════════════════════════════════════
-           CHAT PAGE
-        ══════════════════════════════════════ */
+        /* CHAT */
         #page-chat {
             display: none;
         }
@@ -722,9 +749,7 @@
             margin-top: 8px
         }
 
-        /* ══════════════════════════════════════
-           SHARED DASHBOARD COMPONENTS
-        ══════════════════════════════════════ */
+        /* SHARED DASHBOARD */
         .page-toolbar {
             display: flex;
             align-items: center;
@@ -742,6 +767,10 @@
 
         .page-title span {
             color: var(--accent);
+        }
+
+        .page-title span.server-color {
+            color: var(--server-accent);
         }
 
         .last-updated {
@@ -770,6 +799,11 @@
             color: var(--accent)
         }
 
+        .refresh-btn.server:hover {
+            border-color: var(--server-dim);
+            color: var(--server-accent)
+        }
+
         .refresh-btn.loading {
             opacity: 0.5;
             pointer-events: none
@@ -783,12 +817,15 @@
             animation: spin 1s linear infinite
         }
 
-        /* Cards */
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-top: 2px solid var(--accent);
             overflow: hidden;
+        }
+
+        .card.server {
+            border-top-color: var(--server-accent);
         }
 
         .card.warn {
@@ -817,6 +854,10 @@
             font-size: 10px;
             letter-spacing: 0.2em;
             color: var(--accent);
+        }
+
+        .card.server .card-title {
+            color: var(--server-accent);
         }
 
         .card.warn .card-title {
@@ -863,7 +904,6 @@
             background: transparent;
         }
 
-        /* Big number */
         .big-num {
             font-family: var(--mono);
             font-size: 40px;
@@ -871,6 +911,10 @@
             letter-spacing: -0.02em;
             color: var(--accent);
             margin-bottom: 6px;
+        }
+
+        .big-num.server {
+            color: var(--server-accent);
         }
 
         .big-num sup {
@@ -887,7 +931,6 @@
             color: var(--danger)
         }
 
-        /* Progress bar */
         .prog-wrap {
             height: 4px;
             background: var(--border);
@@ -901,6 +944,10 @@
             transition: width 0.6s ease;
         }
 
+        .prog-bar.server {
+            background: var(--server-accent);
+        }
+
         .prog-bar.warn {
             background: var(--tool-accent)
         }
@@ -909,7 +956,6 @@
             background: var(--danger)
         }
 
-        /* Stat rows */
         .stat-row {
             display: flex;
             justify-content: space-between;
@@ -937,6 +983,10 @@
             color: var(--accent)
         }
 
+        .stat-val.server {
+            color: var(--server-accent)
+        }
+
         .stat-val.warn {
             color: var(--tool-accent)
         }
@@ -949,7 +999,6 @@
             color: #28c840
         }
 
-        /* Skeleton loader */
         .skeleton {
             background: linear-gradient(90deg, var(--border) 25%, var(--surface2) 50%, var(--border) 75%);
             background-size: 200% 100%;
@@ -967,20 +1016,13 @@
             }
         }
 
-        /* ══════════════════════════════════════
-           METRICS PAGE
-        ══════════════════════════════════════ */
+        /* METRICS LAYOUT */
         .metrics-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
         }
 
-        .metrics-layout.span2 {
-            grid-column: 1/-1;
-        }
-
-        /* Per-core bar chart */
         .core-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(24px, 1fr));
@@ -1014,7 +1056,6 @@
             color: var(--text-dim);
         }
 
-        /* Disk mount */
         .mount-item {
             padding: 8px 0;
             border-bottom: 1px solid var(--border);
@@ -1029,6 +1070,10 @@
             font-size: 11px;
             color: var(--accent);
             margin-bottom: 4px;
+        }
+
+        .mount-path.server {
+            color: var(--server-accent);
         }
 
         .mount-path .fstype {
@@ -1054,7 +1099,6 @@
             margin-top: 2px
         }
 
-        /* Net interface */
         .net-iface-card {
             background: var(--surface2);
             border: 1px solid var(--border);
@@ -1078,6 +1122,10 @@
             letter-spacing: 0.08em
         }
 
+        .net-iface-name.server {
+            color: var(--server-accent);
+        }
+
         .status-dot {
             width: 6px;
             height: 6px;
@@ -1095,9 +1143,7 @@
             box-shadow: 0 0 5px var(--danger)
         }
 
-        /* ══════════════════════════════════════
-           DEVICE PAGE
-        ══════════════════════════════════════ */
+        /* DEVICE PAGE */
         .device-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1112,6 +1158,11 @@
             text-shadow: 0 0 30px var(--accent-dim);
             animation: flicker 6s ease-in-out infinite;
             margin-bottom: 4px;
+        }
+
+        .identity-name.server {
+            color: var(--server-accent);
+            text-shadow: 0 0 30px var(--server-dim);
         }
 
         @keyframes flicker {
@@ -1159,7 +1210,6 @@
             color: var(--text-dim)
         }
 
-        /* Ping display */
         .ping-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -1179,6 +1229,10 @@
             font-size: 36px;
             line-height: 1;
             color: var(--accent)
+        }
+
+        .ping-num.server {
+            color: var(--server-accent);
         }
 
         .ping-num.warn {
@@ -1211,6 +1265,10 @@
             transition: height 0.3s ease
         }
 
+        .ping-bar.server {
+            background: var(--server-accent);
+        }
+
         .ping-bar.warn {
             background: var(--tool-accent)
         }
@@ -1219,105 +1277,687 @@
             background: var(--danger)
         }
 
-        /* ══════════════════════════════════════
-           THE PIT — stub
-        ══════════════════════════════════════ */
-        #page-pit {
+        /* SOURCE LABEL BADGE */
+        .source-badge {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            padding: 2px 8px;
+            border: 1px solid;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: 4px;
         }
 
-        .pit-stub {
+        .source-badge.pi {
+            color: var(--server-accent);
+            border-color: var(--server-dim);
+            background: rgba(123, 140, 255, 0.06);
+        }
+
+        .source-badge.client {
+            color: var(--accent);
+            border-color: var(--accent-dim);
+            background: rgba(0, 229, 160, 0.06);
+        }
+
+        .source-badge .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* THE PIT */
+        #page-pit {
+            display: none;
+        }
+
+        #page-pit.active {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 1fr;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .pit-sidebar {
+            border-right: 1px solid var(--tool-border);
+            background: #0a0c0a;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            max-width: 480px;
-            text-align: center;
-            padding: 40px
+            overflow: hidden;
         }
 
-        .pit-glyph {
-            font-family: var(--mono);
-            font-size: 80px;
-            color: var(--tool-accent);
-            letter-spacing: 0.1em;
-            line-height: 1;
-            text-shadow: 0 0 40px rgba(240, 180, 41, 0.4), 0 0 80px rgba(240, 180, 41, 0.1);
-            animation: flicker 7s ease-in-out infinite
-        }
-
-        .pit-name {
-            font-family: var(--mono);
-            font-size: 14px;
-            letter-spacing: 0.25em;
-            color: var(--tool-accent);
-            opacity: 0.7;
-            margin-top: -8px
-        }
-
-        .pit-desc {
-            font-family: var(--mono);
-            font-size: 11px;
-            color: var(--text-dim);
-            line-height: 1.9;
-            letter-spacing: 0.04em
-        }
-
-        .pit-status-line {
+        .pit-sidebar-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--tool-border);
+            background: #0c0e0a;
             display: flex;
             align-items: center;
             gap: 10px;
-            background: var(--surface);
-            border: 1px solid var(--tool-border);
-            border-left: 2px solid var(--tool-accent);
-            padding: 8px 14px;
-            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .pit-glyph-sm {
+            font-family: var(--mono);
+            font-size: 18px;
+            color: var(--pit-accent);
+            text-shadow: 0 0 12px rgba(240, 180, 41, 0.4);
+        }
+
+        .pit-sidebar-title {
             font-family: var(--mono);
             font-size: 10px;
-            color: var(--text-dim)
+            letter-spacing: 0.2em;
+            color: var(--pit-accent);
         }
 
-        .pit-status-line+.pit-status-line {
-            border-top: none;
-            margin-top: -1px
+        .pit-status-panel {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--tool-border);
+            flex-shrink: 0;
         }
 
-        .pit-dot-sm {
-            width: 6px;
-            height: 6px;
+        .pit-status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .pit-status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .pit-status-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            color: var(--text-dim);
+        }
+
+        .pit-status-val {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text);
+        }
+
+        .pit-online-dot {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: var(--muted);
-            flex-shrink: 0
+            display: inline-block;
+            margin-right: 5px;
+            vertical-align: middle;
         }
 
-        .pit-dot-sm.on {
-            background: var(--tool-accent);
-            box-shadow: 0 0 6px var(--tool-accent);
-            animation: pulse 1.8s ease-in-out infinite
+        .pit-online-dot.on {
+            background: var(--pit-accent);
+            box-shadow: 0 0 6px var(--pit-accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .pit-online-dot.err {
+            background: var(--danger);
+            box-shadow: 0 0 6px var(--danger);
+        }
+
+        .pit-files-section {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pit-files-header {
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--tool-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            background: #0c0e0a;
+        }
+
+        .pit-files-title {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            color: var(--text-dim);
+        }
+
+        .pit-files-path {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--pit-accent);
+            opacity: 0.7;
+        }
+
+        .pit-refresh-files {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 4px;
+            transition: color 0.15s;
+            font-family: var(--mono);
+        }
+
+        .pit-refresh-files:hover {
+            color: var(--pit-accent);
+        }
+
+        .pit-file-list {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--tool-border) transparent;
+        }
+
+        .pit-file-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .pit-file-list::-webkit-scrollbar-thumb {
+            background: var(--tool-border);
+        }
+
+        .pit-file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 16px;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid rgba(42, 32, 16, 0.4);
+        }
+
+        .pit-file-item:hover {
+            background: rgba(240, 180, 41, 0.04);
+        }
+
+        .pit-file-icon {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            width: 12px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .pit-file-name {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pit-file-item.dir .pit-file-name {
+            color: var(--pit-accent);
+        }
+
+        .pit-file-item.executable .pit-file-name {
+            color: #28c840;
+        }
+
+        .pit-file-size {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        .pit-file-empty {
+            padding: 20px 16px;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--muted);
+            text-align: center;
+            letter-spacing: 0.08em;
+        }
+
+        .pit-actions {
+            padding: 10px;
+            border-top: 1px solid var(--tool-border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .pit-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            background: transparent;
+            border: 1px solid var(--tool-border);
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            width: 100%;
+        }
+
+        .pit-action-btn:hover {
+            border-color: var(--pit-accent);
+            color: var(--pit-accent);
+            background: rgba(240, 180, 41, 0.04);
+        }
+
+        .pit-action-btn.danger:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(255, 68, 85, 0.04);
+        }
+
+        .pit-action-btn .btn-icon {
+            width: 12px;
+            text-align: center;
+        }
+
+        .pit-main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        .pit-terminal-wrap {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pit-terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--tool-border);
+            background: #0c0e0a;
+            flex-shrink: 0;
+        }
+
+        .pit-terminal-title {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.18em;
+            color: var(--pit-accent);
+        }
+
+        .pit-terminal-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pit-terminal-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .pit-terminal-dots span:nth-child(1) {
+            background: #ff5f57
+        }
+
+        .pit-terminal-dots span:nth-child(2) {
+            background: #febc2e
+        }
+
+        .pit-terminal-dots span:nth-child(3) {
+            background: #28c840
+        }
+
+        .pit-terminal-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1.65;
+            scrollbar-width: thin;
+            scrollbar-color: var(--tool-border) transparent;
+        }
+
+        .pit-terminal-output::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .pit-terminal-output::-webkit-scrollbar-thumb {
+            background: var(--tool-border);
+        }
+
+        .pit-line {
+            margin-bottom: 1px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 0;
+        }
+
+        .pit-line-prompt {
+            color: var(--pit-accent);
+            flex-shrink: 0;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        .pit-line-cmd {
+            color: #c8d6e5;
+        }
+
+        .pit-line-out {
+            color: #8a9cb0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            width: 100%;
+        }
+
+        .pit-line-out.success {
+            color: #7ec89a;
+        }
+
+        .pit-line-out.error {
+            color: #e07080;
+        }
+
+        .pit-line-out.info {
+            color: var(--pit-accent);
+            opacity: 0.7;
+        }
+
+        .pit-line-out.system {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .pit-cursor {
+            display: inline-block;
+            width: 7px;
+            height: 13px;
+            background: var(--pit-accent);
+            vertical-align: middle;
+            animation: blink-cursor 0.9s step-end infinite;
+            margin-left: 1px;
+        }
+
+        .pit-input-area {
+            flex-shrink: 0;
+            border-top: 1px solid var(--tool-border);
+            background: #0a0c0a;
+            padding: 10px 16px;
+        }
+
+        .pit-input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pit-prompt-label {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--pit-accent);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .pit-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--tool-border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 4px 0;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .pit-input:focus {
+            border-bottom-color: var(--pit-accent);
+        }
+
+        .pit-input::placeholder {
+            color: var(--muted);
+        }
+
+        .pit-run-btn {
+            background: var(--pit-accent);
+            border: none;
+            color: #000;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .pit-run-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .pit-run-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pit-input-hint {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--muted);
+            margin-top: 6px;
+            letter-spacing: 0.06em;
+        }
+
+        .pit-pkg-strip {
+            display: none;
+            padding: 8px 16px;
+            border-top: 1px solid var(--tool-border);
+            background: rgba(240, 180, 41, 0.04);
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .pit-pkg-strip.visible {
+            display: flex;
+        }
+
+        .pit-pkg-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--pit-accent);
+            letter-spacing: 0.1em;
+            flex-shrink: 0;
+        }
+
+        .pit-pkg-input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--tool-border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 5px 8px;
+            outline: none;
+        }
+
+        .pit-pkg-input:focus {
+            border-color: var(--pit-accent);
+        }
+
+        .pit-pkg-mgr {
+            background: var(--surface2);
+            border: 1px solid var(--tool-border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 5px 8px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .pit-pkg-btn {
+            background: var(--pit-accent);
+            border: none;
+            color: #000;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+
+        .pit-pkg-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .pit-pkg-cancel {
+            background: none;
+            border: 1px solid var(--tool-border);
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .pit-pkg-cancel:hover {
+            color: var(--text);
+            border-color: var(--text-dim);
+        }
+
+        .pit-write-strip {
+            display: none;
+            padding: 8px 16px;
+            border-top: 1px solid var(--tool-border);
+            background: rgba(0, 229, 160, 0.03);
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .pit-write-strip.visible {
+            display: flex;
+        }
+
+        .pit-write-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pit-write-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+            flex-shrink: 0;
+            min-width: 48px;
+        }
+
+        .pit-write-input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 4px 8px;
+            outline: none;
+        }
+
+        .pit-write-input:focus {
+            border-color: var(--accent-dim);
+        }
+
+        .pit-write-content {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 4px 8px;
+            outline: none;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .pit-write-content:focus {
+            border-color: var(--accent-dim);
+        }
+
+        .pit-write-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .pit-write-save {
+            background: var(--accent);
+            border: none;
+            color: #000;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            padding: 5px 12px;
+            cursor: pointer;
+        }
+
+        .pit-write-cancel {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .pit-write-cancel:hover {
+            color: var(--text);
         }
     </style>
 </head>
 
 <body>
     <div class="app">
-
-        <!-- ── HEADER ── -->
         <header>
             <div class="wordmark">BRICK <sub>// SYSADMIN</sub></div>
             <nav>
                 <button class="nav-tab active" onclick="switchPage('chat',this)">
                     <span>⌨</span> CHAT
                 </button>
-                <button class="nav-tab" onclick="switchPage('metrics',this)">
-                    <span>◈</span> METRICS
+                <button class="nav-tab server-tab" onclick="switchPage('server',this)">
+                    <span>◈</span> SERVER
+                    <span class="source-badge pi" style="margin-left:2px;font-size:8px;padding:1px 5px">PI</span>
                 </button>
                 <button class="nav-tab" onclick="switchPage('device',this)">
                     <span>◎</span> DEVICE
+                    <span class="source-badge client"
+                        style="margin-left:2px;font-size:8px;padding:1px 5px">CLIENT</span>
                 </button>
-                <button class="nav-tab" onclick="switchPage('pit',this)">
+                <button class="nav-tab" id="pit-nav-tab" onclick="switchPage('pit',this)">
                     <span>▣</span> THE PIT
-                    <span class="tab-badge">SOON</span>
+                    <span class="tab-badge" id="pit-tab-badge">—</span>
                 </button>
             </nav>
             <div class="header-right">
@@ -1329,9 +1969,7 @@
             </div>
         </header>
 
-        <!-- ══════════════════════════════════════
-         CHAT
-    ══════════════════════════════════════ -->
+        <!-- ═══ CHAT PAGE ═══ -->
         <div class="page" id="page-chat">
             <div class="messages" id="messages">
                 <div class="empty-state" id="emptyState">
@@ -1349,107 +1987,100 @@
             </div>
         </div>
 
-        <!-- ══════════════════════════════════════
-         METRICS
-    ══════════════════════════════════════ -->
-        <div class="page" id="page-metrics">
+        <!-- ═══ SERVER PAGE (server) ═══ -->
+        <div class="page" id="page-server">
             <div class="page-scroll">
                 <div class="page-toolbar">
-                    <div class="page-title">SYSTEM TELEMETRY <span>// {{ device.name }}</span></div>
+                    <div class="page-title">SERVER TELEMETRY <span class="server-color">// RASPBERRY PI</span></div>
                     <div style="display:flex;align-items:center;gap:12px">
-                        <span class="last-updated" id="metrics-ts">—</span>
-                        <button class="refresh-btn" id="metrics-refresh" onclick="loadMetrics()">
+                        <span class="last-updated" id="server-ts">—</span>
+                        <button class="refresh-btn server" id="server-refresh" onclick="loadServer()">
                             <span class="refresh-icon">↻</span> REFRESH
                         </button>
                     </div>
                 </div>
-
                 <div class="metrics-layout" style="margin-bottom:16px">
-                    <!-- CPU -->
-                    <div class="card" id="card-cpu">
-                        <div class="card-header">
-                            <span class="card-title">CPU</span>
-                            <span class="badge ok" id="cpu-badge">—</span>
-                        </div>
+                    <div class="card server" id="srv-card-cpu">
+                        <div class="card-header"><span class="card-title">CPU</span><span class="badge ok"
+                                id="srv-cpu-badge">—</span></div>
                         <div class="card-body">
-                            <div class="big-num" id="cpu-pct">—<sup>%</sup></div>
+                            <div class="big-num server" id="srv-cpu-pct">—<sup>%</sup></div>
                             <div class="prog-wrap">
-                                <div class="prog-bar" id="cpu-bar" style="width:0%"></div>
+                                <div class="prog-bar server" id="srv-cpu-bar" style="width:0%"></div>
                             </div>
                             <div class="stat-row"><span class="stat-label">LOAD 1m / 5m / 15m</span><span
-                                    class="stat-val" id="cpu-load">—</span></div>
+                                    class="stat-val server" id="srv-cpu-load">—</span></div>
                             <div class="stat-row"><span class="stat-label">IOWAIT</span><span class="stat-val"
-                                    id="cpu-iowait">—</span></div>
-                            <div class="stat-row"><span class="stat-label">STEAL</span><span class="stat-val"
-                                    id="cpu-steal">—</span></div>
+                                    id="srv-cpu-iowait">—</span></div>
                             <div class="stat-row"><span class="stat-label">LOGICAL / PHYSICAL</span><span
-                                    class="stat-val" id="cpu-cores">—</span></div>
-                            <div class="core-grid" id="core-grid"></div>
+                                    class="stat-val" id="srv-cpu-cores">—</span></div>
+                            <div class="core-grid" id="srv-core-grid"></div>
                         </div>
                     </div>
-
-                    <!-- Memory -->
-                    <div class="card" id="card-mem">
-                        <div class="card-header">
-                            <span class="card-title">MEMORY</span>
-                            <span class="badge ok" id="mem-badge">—</span>
-                        </div>
+                    <div class="card server" id="srv-card-mem">
+                        <div class="card-header"><span class="card-title">MEMORY</span><span class="badge ok"
+                                id="srv-mem-badge">—</span></div>
                         <div class="card-body">
-                            <div class="big-num" id="mem-pct">—<sup>%</sup></div>
+                            <div class="big-num server" id="srv-mem-pct">—<sup>%</sup></div>
                             <div class="prog-wrap">
-                                <div class="prog-bar" id="mem-bar" style="width:0%"></div>
+                                <div class="prog-bar server" id="srv-mem-bar" style="width:0%"></div>
                             </div>
                             <div class="stat-row"><span class="stat-label">USED</span><span class="stat-val"
-                                    id="mem-used">—</span></div>
+                                    id="srv-mem-used">—</span></div>
                             <div class="stat-row"><span class="stat-label">AVAILABLE</span><span class="stat-val"
-                                    id="mem-avail">—</span></div>
+                                    id="srv-mem-avail">—</span></div>
                             <div class="stat-row"><span class="stat-label">TOTAL</span><span class="stat-val"
-                                    id="mem-total">—</span></div>
-                            <div class="stat-row"><span class="stat-label">CACHED</span><span class="stat-val"
-                                    id="mem-cached">—</span></div>
+                                    id="srv-mem-total">—</span></div>
                             <div class="stat-row"><span class="stat-label">SWAP USED / TOTAL</span><span
-                                    class="stat-val" id="mem-swap">—</span></div>
+                                    class="stat-val" id="srv-mem-swap">—</span></div>
                             <div
                                 style="margin-top:14px;font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:6px">
                                 TOP CONSUMERS</div>
-                            <div id="mem-top-procs"></div>
+                            <div id="srv-mem-top"></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Disk -->
-                <div class="card" id="card-disk" style="margin-bottom:16px">
-                    <div class="card-header">
-                        <span class="card-title">DISK</span>
-                        <span class="badge ok" id="disk-badge">—</span>
-                    </div>
-                    <div class="card-body" id="disk-body">
+                <div class="card server" style="margin-bottom:16px">
+                    <div class="card-header"><span class="card-title">DISK</span><span class="badge ok"
+                            id="srv-disk-badge">—</span></div>
+                    <div class="card-body" id="srv-disk-body">
                         <div class="skeleton" style="height:14px;width:60%;margin-bottom:10px"></div>
                         <div class="skeleton" style="height:14px;width:40%"></div>
                     </div>
                 </div>
-
-                <!-- Network I/O -->
-                <div class="card" id="card-net" style="margin-bottom:8px">
-                    <div class="card-header">
-                        <span class="card-title">NETWORK I/O</span>
-                        <span class="badge ok" id="net-badge">—</span>
+                <div class="card server" style="margin-bottom:16px">
+                    <div class="card-header"><span class="card-title">SYSTEM INFO</span><span class="badge ok"
+                            id="srv-sys-badge">PI</span></div>
+                    <div class="card-body">
+                        <div class="stat-row"><span class="stat-label">HOSTNAME</span><span class="stat-val server"
+                                id="srv-hostname">—</span></div>
+                        <div class="stat-row"><span class="stat-label">OS</span><span class="stat-val"
+                                id="srv-os">—</span></div>
+                        <div class="stat-row"><span class="stat-label">KERNEL</span><span class="stat-val"
+                                id="srv-kernel">—</span></div>
+                        <div class="stat-row"><span class="stat-label">CPU MODEL</span><span class="stat-val"
+                                id="srv-cpumodel">—</span></div>
+                        <div class="stat-row"><span class="stat-label">TOTAL RAM</span><span class="stat-val"
+                                id="srv-ram">—</span></div>
+                        <div class="stat-row"><span class="stat-label">UPTIME</span><span class="stat-val ok"
+                                id="srv-uptime">—</span></div>
                     </div>
-                    <div class="card-body" id="net-body">
+                </div>
+                <div class="card server" style="margin-bottom:8px">
+                    <div class="card-header"><span class="card-title">NETWORK I/O</span><span class="badge ok"
+                            id="srv-net-badge">—</span></div>
+                    <div class="card-body" id="srv-net-body">
                         <div class="skeleton" style="height:60px;margin-bottom:8px"></div>
-                        <div class="skeleton" style="height:60px"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ══════════════════════════════════════
-         DEVICE
-    ══════════════════════════════════════ -->
+        <!-- ═══ DEVICE PAGE (Mac/client stats — remote) ═══ -->
         <div class="page" id="page-device">
             <div class="page-scroll">
                 <div class="page-toolbar">
-                    <div class="page-title">CONNECTED DEVICE <span>// PROFILE</span></div>
+                    <div class="page-title">DEVICE TELEMETRY <span>// {{ device.name }}</span></div>
                     <div style="display:flex;align-items:center;gap:12px">
                         <span class="last-updated" id="device-ts">—</span>
                         <button class="refresh-btn" id="device-refresh" onclick="loadDevice()">
@@ -1457,22 +2088,15 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="device-layout" style="margin-bottom:16px">
-                    <!-- Identity -->
                     <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">IDENTITY</span>
-                            <span class="badge ok">REGISTERED</span>
-                        </div>
+                        <div class="card-header"><span class="card-title">IDENTITY</span><span
+                                class="badge ok">REGISTERED</span></div>
                         <div class="card-body">
                             <div class="identity-name" id="dev-name">{{ device.name }}</div>
                             <div class="identity-ip" id="dev-ip">{{ device.ip }}</div>
-                            <div class="tag-list" id="dev-tags">
-                                {% for tag in device.tags %}
-                                <span class="tag">{{ tag | upper }}</span>
-                                {% endfor %}
-                            </div>
+                            <div class="tag-list" id="dev-tags">{% for tag in device.tags %}<span class="tag">{{ tag |
+                                    upper }}</span>{% endfor %}</div>
                             <div style="margin-top:14px">
                                 <div class="stat-row"><span class="stat-label">DESCRIPTION</span><span
                                         class="stat-val">{{ device.description }}</span></div>
@@ -1488,31 +2112,44 @@
                                         id="dev-ram">—</span></div>
                                 <div class="stat-row"><span class="stat-label">UPTIME</span><span class="stat-val ok"
                                         id="dev-uptime">—</span></div>
-                                <div class="stat-row"><span class="stat-label">BOOT TIME</span><span class="stat-val"
-                                        id="dev-boot">—</span></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Network interfaces -->
                     <div class="card">
-                        <div class="card-header">
-                            <span class="card-title">NETWORK INTERFACES</span>
-                            <span class="badge ok" id="iface-badge">—</span>
-                        </div>
-                        <div class="card-body" id="iface-body">
-                            <div class="skeleton" style="height:70px;margin-bottom:8px"></div>
-                            <div class="skeleton" style="height:70px"></div>
+                        <div class="card-header"><span class="card-title">METRICS</span><span class="badge ok"
+                                id="dev-metrics-badge">—</span></div>
+                        <div class="card-body">
+                            <div class="big-num" id="dev-cpu-pct">—<sup>%</sup></div>
+                            <div
+                                style="font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:4px">
+                                CPU</div>
+                            <div class="prog-wrap">
+                                <div class="prog-bar" id="dev-cpu-bar" style="width:0%"></div>
+                            </div>
+                            <div style="margin-top:10px">
+                                <div class="stat-row"><span class="stat-label">MEM USED</span><span class="stat-val"
+                                        id="dev-mem-used">—</span></div>
+                                <div class="stat-row"><span class="stat-label">MEM TOTAL</span><span class="stat-val"
+                                        id="dev-mem-total">—</span></div>
+                                <div class="stat-row"><span class="stat-label">MEM %</span><span class="stat-val"
+                                        id="dev-mem-pct">—</span></div>
+                                <div class="stat-row"><span class="stat-label">LOAD 1m</span><span class="stat-val"
+                                        id="dev-load">—</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Connectivity / Ping -->
-                <div class="card" style="margin-bottom:8px">
-                    <div class="card-header">
-                        <span class="card-title">CONNECTIVITY CHECK</span>
-                        <span class="badge dim" id="ping-badge">PENDING</span>
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-header"><span class="card-title">NETWORK INTERFACES</span><span class="badge ok"
+                            id="iface-badge">—</span></div>
+                    <div class="card-body" id="iface-body">
+                        <div class="skeleton" style="height:70px;margin-bottom:8px"></div>
+                        <div class="skeleton" style="height:70px"></div>
                     </div>
+                </div>
+                <div class="card" style="margin-bottom:8px">
+                    <div class="card-header"><span class="card-title">CONNECTIVITY CHECK</span><span class="badge dim"
+                            id="ping-badge">PENDING</span></div>
                     <div class="card-body">
                         <div class="ping-grid">
                             <div>
@@ -1546,45 +2183,115 @@
             </div>
         </div>
 
-        <!-- ══════════════════════════════════════
-         THE PIT — stub
-    ══════════════════════════════════════ -->
+        <!-- ═══ THE PIT PAGE ═══ -->
         <div class="page" id="page-pit">
-            <div class="pit-stub">
-                <div class="pit-glyph">▣</div>
-                <div class="pit-name">THE PIT</div>
-                <div class="pit-desc">
-                    Brick's personal sandbox. Alpine Linux. Persistent.<br>
-                    Scripts run here first. Things that might blow up, happen here.<br><br>
-                    Not a throwaway environment. A bench.
+            <div class="pit-sidebar">
+                <div class="pit-sidebar-header">
+                    <div class="pit-glyph-sm">▣</div>
+                    <div class="pit-sidebar-title">THE PIT</div>
                 </div>
-                <div class="pit-status-line">
-                    <div class="pit-dot-sm on"></div>
-                    SANDBOX MANAGEMENT INTERFACE — COMING ONLINE
+                <div class="pit-status-panel">
+                    <div class="pit-status-row"><span class="pit-status-label">STATUS</span><span
+                            class="pit-status-val"><span class="pit-online-dot" id="pit-dot"></span><span
+                                id="pit-status-text">checking…</span></span></div>
+                    <div class="pit-status-row"><span class="pit-status-label">IMAGE</span><span class="pit-status-val"
+                            id="pit-image">—</span></div>
+                    <div class="pit-status-row"><span class="pit-status-label">CPU</span><span class="pit-status-val"
+                            id="pit-cpu">—</span></div>
+                    <div class="pit-status-row"><span class="pit-status-label">MEMORY</span><span class="pit-status-val"
+                            id="pit-mem">—</span></div>
+                    <div class="pit-status-row"><span class="pit-status-label">DISK</span><span class="pit-status-val"
+                            id="pit-disk">—</span></div>
+                    <div class="pit-status-row"><span class="pit-status-label">STARTED</span><span
+                            class="pit-status-val" style="font-size:9px" id="pit-started">—</span></div>
                 </div>
-                <div class="pit-status-line">
-                    <div class="pit-dot-sm"></div>
-                    <span style="color:var(--muted)">Available via chat: sandbox_exec, sandbox_status,
-                        sandbox_write_file, sandbox_read_file…</span>
+                <div class="pit-files-section">
+                    <div class="pit-files-header">
+                        <span class="pit-files-title">FILES</span>
+                        <span class="pit-files-path" id="pit-files-path">/workspace</span>
+                        <button class="pit-refresh-files" onclick="loadPitFiles()" title="Refresh files">↻</button>
+                    </div>
+                    <div class="pit-file-list" id="pit-file-list">
+                        <div class="pit-file-empty">loading…</div>
+                    </div>
+                </div>
+                <div class="pit-actions">
+                    <button class="pit-action-btn" onclick="showPkgStrip()"><span class="btn-icon">+</span> INSTALL
+                        PACKAGE</button>
+                    <button class="pit-action-btn" onclick="showWriteStrip()"><span class="btn-icon">⊕</span> WRITE
+                        FILE</button>
+                    <button class="pit-action-btn" onclick="pitClearTerminal()"><span class="btn-icon">⊘</span> CLEAR
+                        TERMINAL</button>
+                    <button class="pit-action-btn danger" onclick="pitResetSandbox()"><span class="btn-icon">✕</span>
+                        RESET SANDBOX</button>
+                </div>
+            </div>
+            <div class="pit-main">
+                <div class="pit-terminal-wrap">
+                    <div class="pit-terminal-header">
+                        <div class="pit-terminal-dots"><span></span><span></span><span></span></div>
+                        <div class="pit-terminal-title">BRICK@PIT — Alpine Linux</div>
+                        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.1em"
+                            id="pit-exit-code"></div>
+                    </div>
+                    <div class="pit-terminal-output" id="pit-output"></div>
+                </div>
+                <div class="pit-pkg-strip" id="pit-pkg-strip">
+                    <span class="pit-pkg-label">INSTALL</span>
+                    <input class="pit-pkg-input" id="pit-pkg-name" placeholder="package name(s)…" />
+                    <select class="pit-pkg-mgr" id="pit-pkg-mgr">
+                        <option value="apk">apk</option>
+                        <option value="pip">pip</option>
+                    </select>
+                    <button class="pit-pkg-btn" onclick="runPkgInstall()">INSTALL</button>
+                    <button class="pit-pkg-cancel" onclick="hidePkgStrip()">✕</button>
+                </div>
+                <div class="pit-write-strip" id="pit-write-strip">
+                    <div class="pit-write-row">
+                        <span class="pit-write-label">PATH</span>
+                        <input class="pit-write-input" id="pit-write-path" placeholder="/workspace/script.sh" />
+                        <span class="pit-write-label" style="margin-left:12px">MODE</span>
+                        <input class="pit-write-input" id="pit-write-mode" placeholder="644" style="max-width:60px"
+                            value="644" />
+                    </div>
+                    <div class="pit-write-row">
+                        <span class="pit-write-label">CONTENT</span>
+                        <textarea class="pit-write-content" id="pit-write-content"
+                            placeholder="file content…"></textarea>
+                    </div>
+                    <div class="pit-write-btns">
+                        <button class="pit-write-save" onclick="runWriteFile()">SAVE FILE</button>
+                        <button class="pit-write-cancel" onclick="hideWriteStrip()">CANCEL</button>
+                    </div>
+                </div>
+                <div class="pit-input-area">
+                    <div class="pit-input-row">
+                        <span class="pit-prompt-label">brick@pit:/workspace$</span>
+                        <input class="pit-input" id="pit-cmd" placeholder="command…" autocomplete="off"
+                            autocorrect="off" autocapitalize="off" spellcheck="false" />
+                        <button class="pit-run-btn" id="pit-run-btn" onclick="runPitCommand()">RUN</button>
+                    </div>
+                    <div class="pit-input-hint">enter to run &nbsp;·&nbsp; ↑↓ history &nbsp;·&nbsp; ctrl+l to clear
+                    </div>
                 </div>
             </div>
         </div>
-
-    </div><!-- .app -->
+    </div>
 
     <script>
         // ═══════════════════════════════════════════════════════
         //  NAVIGATION
         // ═══════════════════════════════════════════════════════
-        let metricsLoaded = false, deviceLoaded = false;
+        let serverLoaded = false, deviceLoaded = false, pitLoaded = false;
 
         function switchPage(name, btn) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('page-' + name).classList.add('active');
             btn.classList.add('active');
-            if (name === 'metrics' && !metricsLoaded) loadMetrics();
+            if (name === 'server' && !serverLoaded) loadServer();
             if (name === 'device' && !deviceLoaded) loadDevice();
+            if (name === 'pit' && !pitLoaded) initPit();
         }
 
         // ═══════════════════════════════════════════════════════
@@ -1594,121 +2301,86 @@
         const fmtMB = mb => mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : Math.round(mb) + ' MB';
         const sc = pct => pct > 90 ? 'crit' : pct > 75 ? 'warn' : 'ok';
 
-        function setBadge(id, text, cls) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.textContent = text; el.className = 'badge ' + cls;
-        }
-        function setCard(id, cls) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.className = 'card ' + (cls === 'ok' ? '' : cls);
-        }
-        function setBar(id, pct) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.style.width = pct + '%'; el.className = 'prog-bar ' + sc(pct);
-        }
-        function setBigNum(id, val, unit = '%') {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const cls = sc(parseFloat(val) || 0);
-            el.innerHTML = Math.round(parseFloat(val) || 0) + `<sup>${unit}</sup>`;
-            el.className = 'big-num ' + cls;
-        }
+        function setBadge(id, text, cls) { const el = document.getElementById(id); if (!el) return; el.textContent = text; el.className = 'badge ' + cls; }
+        function setBar(id, pct, extra = '') { const el = document.getElementById(id); if (!el) return; el.style.width = pct + '%'; const c = sc(pct); el.className = 'prog-bar ' + extra + (c === 'ok' ? '' : ' ' + c); }
+        function setBigNum(id, val, unit = '%', extra = '') { const el = document.getElementById(id); if (!el) return; const v = Math.round(parseFloat(val) || 0); const c = sc(v); el.innerHTML = v + `<sup>${unit}</sup>`; el.className = 'big-num ' + extra + (c === 'ok' ? '' : ' ' + c); }
 
-        // ═══════════════════════════════════════════════════════
-        //  TOOL CALLER — uses /api/tool only (direct execution,
-        //  never touches the agent's chat history or Ollama)
-        // ═══════════════════════════════════════════════════════
+        // Tool call — routes to remote device (Mac)
         async function callTool(toolName, params = {}) {
-            const r = await fetch('/api/tool', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: toolName, parameters: params }),
-            });
+            const r = await fetch('/api/tool', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: toolName, parameters: params }) });
             const d = await r.json();
             if (!r.ok || d.error) throw new Error(d.error || `tool ${toolName} failed (${r.status})`);
-            // result is already a parsed object (server handles deserialisation)
+            return d.result;
+        }
+
+        // Local tool call — runs on Pi server
+        async function callLocalTool(toolName, params = {}) {
+            const r = await fetch('/api/tool/local', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: toolName, parameters: params }) });
+            const d = await r.json();
+            if (!r.ok || d.error) throw new Error(d.error || `local tool ${toolName} failed (${r.status})`);
             return d.result;
         }
 
         // ═══════════════════════════════════════════════════════
-        //  METRICS PAGE
+        //  SERVER PAGE (Pi — uses /api/tool/local)
         // ═══════════════════════════════════════════════════════
-        async function loadMetrics() {
-            const btn = document.getElementById('metrics-refresh');
+        async function loadServer() {
+            const btn = document.getElementById('server-refresh');
             btn.classList.add('loading');
             try {
-                const [cpu, mem, disk, net] = await Promise.all([
-                    callTool('get_cpu_usage'),
-                    callTool('get_memory_usage'),
-                    callTool('get_disk_usage'),
-                    callTool('get_network_io'),
+                const [cpu, mem, disk, net, sys] = await Promise.all([
+                    callLocalTool('get_cpu_usage'),
+                    callLocalTool('get_memory_usage'),
+                    callLocalTool('get_disk_usage'),
+                    callLocalTool('get_network_io'),
+                    callLocalTool('get_system_info'),
                 ]);
-                if (cpu) renderCPU(cpu);
-                if (mem) renderMem(mem);
-                if (disk) renderDisk(disk);
-                if (net) renderNet(net);
-                document.getElementById('metrics-ts').textContent = 'Updated ' + new Date().toLocaleTimeString();
-                metricsLoaded = true;
+                if (cpu) renderServerCPU(cpu);
+                if (mem) renderServerMem(mem);
+                if (disk) renderServerDisk(disk);
+                if (net) renderServerNet(net);
+                if (sys) renderServerSys(sys);
+                document.getElementById('server-ts').textContent = 'Updated ' + new Date().toLocaleTimeString();
+                serverLoaded = true;
             } catch (e) {
-                console.error('metrics load error', e);
-                document.getElementById('metrics-ts').textContent = 'Load failed — ' + e.message;
-            } finally {
-                btn.classList.remove('loading');
-            }
+                console.error('server load error', e);
+                document.getElementById('server-ts').textContent = 'Load failed — ' + e.message;
+            } finally { btn.classList.remove('loading'); }
         }
 
-        function renderCPU(d) {
+        function renderServerCPU(d) {
             const pct = d.overall_percent ?? 0;
             const cls = sc(pct);
-            setCard('card-cpu', cls);
-            setBadge('cpu-badge', (d.pressure_label || cls).toUpperCase(), cls);
-            setBigNum('cpu-pct', pct);
-            setBar('cpu-bar', pct);
-
+            setBadge('srv-cpu-badge', (d.pressure_label || cls).toUpperCase(), cls);
+            setBigNum('srv-cpu-pct', pct, '%', 'server');
+            setBar('srv-cpu-bar', pct, 'server ');
             const la = d.load_averages;
-            document.getElementById('cpu-load').textContent = la ? `${la['1min']} / ${la['5min']} / ${la['15min']}` : '—';
-            document.getElementById('cpu-iowait').textContent = d.times_percent?.iowait != null ? d.times_percent.iowait.toFixed(1) + '%' : '—';
-            document.getElementById('cpu-steal').textContent = d.times_percent?.steal != null ? d.times_percent.steal.toFixed(1) + '%' : '—';
+            document.getElementById('srv-cpu-load').textContent = la ? `${la['1min']} / ${la['5min']} / ${la['15min']}` : '—';
+            document.getElementById('srv-cpu-iowait').textContent = d.times_percent?.iowait != null ? d.times_percent.iowait.toFixed(1) + '%' : '—';
             const cc = d.core_count;
-            document.getElementById('cpu-cores').textContent = cc ? `${cc.logical} / ${cc.physical}` : '—';
-
-            // Per-core bars
-            const grid = document.getElementById('core-grid');
+            document.getElementById('srv-cpu-cores').textContent = cc ? `${cc.logical} / ${cc.physical}` : '—';
+            const grid = document.getElementById('srv-core-grid');
             grid.innerHTML = '';
             (d.per_core_percent || []).forEach((p, i) => {
-                const barCls = p > 85 ? 'crit' : p > 65 ? 'warn' : 'ok';
-                const barColor = p > 85 ? 'var(--danger)' : p > 65 ? 'var(--tool-accent)' : 'var(--accent)';
+                const barColor = p > 85 ? 'var(--danger)' : p > 65 ? 'var(--tool-accent)' : 'var(--server-accent)';
                 const cell = document.createElement('div'); cell.className = 'core-cell';
-                cell.innerHTML = `
-            <div class="core-bar-wrap">
-                <div class="core-bar" style="height:${Math.max(2, Math.round(p))}%;background:${barColor}"></div>
-            </div>
-            <div class="core-lbl">${i}</div>`;
+                cell.innerHTML = `<div class="core-bar-wrap"><div class="core-bar" style="height:${Math.max(2, Math.round(p))}%;background:${barColor}"></div></div><div class="core-lbl">${i}</div>`;
                 grid.appendChild(cell);
             });
         }
 
-        function renderMem(d) {
+        function renderServerMem(d) {
             const ram = d.ram; if (!ram) return;
-            const pct = ram.percent ?? 0;
-            const cls = sc(pct);
-            setCard('card-mem', cls);
-            setBadge('mem-badge', (ram.pressure || cls).toUpperCase(), cls);
-            setBigNum('mem-pct', pct);
-            setBar('mem-bar', pct);
-
-            document.getElementById('mem-used').textContent = fmtMB(ram.used_mb ?? 0);
-            document.getElementById('mem-avail').textContent = fmtMB(ram.available_mb ?? 0);
-            document.getElementById('mem-total').textContent = fmtMB(ram.total_mb ?? 0);
-            document.getElementById('mem-cached').textContent = fmtMB(ram.cached_mb ?? 0);
+            const pct = ram.percent ?? 0; const cls = sc(pct);
+            setBadge('srv-mem-badge', (ram.pressure || cls).toUpperCase(), cls);
+            setBigNum('srv-mem-pct', pct, '%', 'server');
+            setBar('srv-mem-bar', pct, 'server ');
+            document.getElementById('srv-mem-used').textContent = fmtMB(ram.used_mb ?? 0);
+            document.getElementById('srv-mem-avail').textContent = fmtMB(ram.available_mb ?? 0);
+            document.getElementById('srv-mem-total').textContent = fmtMB(ram.total_mb ?? 0);
             const sw = d.swap;
-            document.getElementById('mem-swap').textContent = sw ? `${fmtMB(sw.used_mb ?? 0)} / ${fmtMB(sw.total_mb ?? 0)}` : '—';
-
-            const topEl = document.getElementById('mem-top-procs');
-            topEl.innerHTML = '';
+            document.getElementById('srv-mem-swap').textContent = sw ? `${fmtMB(sw.used_mb ?? 0)} / ${fmtMB(sw.total_mb ?? 0)}` : '—';
+            const topEl = document.getElementById('srv-mem-top'); topEl.innerHTML = '';
             (d.top_processes_by_rss || []).slice(0, 5).forEach(p => {
                 const row = document.createElement('div'); row.className = 'stat-row';
                 row.innerHTML = `<span class="stat-label">${escHtml(p.name || '?')}</span><span class="stat-val">${p.memory_percent?.toFixed(1)}%</span>`;
@@ -1716,83 +2388,66 @@
             });
         }
 
-        function renderDisk(d) {
+        function renderServerDisk(d) {
             const parts = d.partitions || []; if (!parts.length) return;
-            const anyCrit = parts.some(p => p.status === 'critical');
-            const anyWarn = parts.some(p => p.status === 'warning');
+            const anyCrit = parts.some(p => p.status === 'critical'), anyWarn = parts.some(p => p.status === 'warning');
             const cls = anyCrit ? 'crit' : anyWarn ? 'warn' : 'ok';
-            setCard('card-disk', cls);
-            setBadge('disk-badge', anyCrit ? 'CRITICAL' : anyWarn ? 'WARNING' : 'OK', cls);
-
-            const body = document.getElementById('disk-body'); body.innerHTML = '';
+            setBadge('srv-disk-badge', anyCrit ? 'CRITICAL' : anyWarn ? 'WARNING' : 'OK', cls);
+            const body = document.getElementById('srv-disk-body'); body.innerHTML = '';
             parts.forEach(p => {
                 const pcls = p.status === 'critical' ? 'crit' : p.status === 'warning' ? 'warn' : 'ok';
                 const div = document.createElement('div'); div.className = 'mount-item';
-                div.innerHTML = `
-            <div class="mount-path">${escHtml(p.mountpoint)}<span class="fstype">${escHtml(p.fstype || '')}</span></div>
-            <div class="mount-stats">
-                <span>${p.used_gb} GB used</span>
-                <span>${p.free_gb} GB free</span>
-                <span>${p.total_gb} GB total</span>
-            </div>
-            <div class="prog-wrap"><div class="prog-bar ${pcls}" style="width:${p.percent}%"></div></div>
-            <div class="mount-pct">${p.percent}%</div>`;
+                div.innerHTML = `<div class="mount-path server">${escHtml(p.mountpoint)}<span class="fstype">${escHtml(p.fstype || '')}</span></div><div class="mount-stats"><span>${p.used_gb} GB used</span><span>${p.free_gb} GB free</span><span>${p.total_gb} GB total</span></div><div class="prog-wrap"><div class="prog-bar server ${pcls === 'ok' ? '' : pcls}" style="width:${p.percent}%"></div></div><div class="mount-pct">${p.percent}%</div>`;
                 body.appendChild(div);
             });
         }
 
-        function renderNet(d) {
-            const ifaces = d.interfaces || {};
-            const degraded = d.degraded_interfaces || [];
+        function renderServerNet(d) {
+            const ifaces = d.interfaces || {}, degraded = d.degraded_interfaces || [];
             const cls = degraded.length ? 'warn' : 'ok';
-            setBadge('net-badge', degraded.length ? `${degraded.length} DEGRADED` : 'OK', cls);
-
-            const body = document.getElementById('net-body'); body.innerHTML = '';
+            setBadge('srv-net-badge', degraded.length ? `${degraded.length} DEGRADED` : 'OK', cls);
+            const body = document.getElementById('srv-net-body'); body.innerHTML = '';
             Object.entries(ifaces).forEach(([name, data]) => {
                 const isUp = data.is_up !== false;
                 const div = document.createElement('div'); div.className = 'net-iface-card';
-                div.innerHTML = `
-            <div class="net-iface-name">
-                <div class="status-dot ${isUp ? 'up' : 'down'}"></div>
-                ${escHtml(name)}
-                <span style="color:var(--text-dim);font-size:10px;margin-left:4px">${(data.ip_addresses || []).join(', ') || '—'}</span>
-                ${data.speed_mbps ? `<span style="color:var(--muted);font-size:9px;margin-left:auto">${data.speed_mbps} Mbps</span>` : ''}
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">↑ SEND</span><span class="stat-val">${data.rates?.send_mb_per_s ?? '—'} MB/s</span>
-                <span class="stat-label" style="margin-left:16px">↓ RECV</span><span class="stat-val">${data.rates?.recv_mb_per_s ?? '—'} MB/s</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">TOTAL SENT</span><span class="stat-val">${data.totals?.sent_mb ?? '—'} MB</span>
-                <span class="stat-label" style="margin-left:16px">TOTAL RECV</span><span class="stat-val">${data.totals?.recv_mb ?? '—'} MB</span>
-            </div>
-            ${data.degraded ? `<div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-top:6px">⚠ DEGRADED — errors or drops detected</div>` : ''}`;
+                div.innerHTML = `<div class="net-iface-name server"><div class="status-dot ${isUp ? 'up' : 'down'}"></div>${escHtml(name)}<span style="color:var(--text-dim);font-size:10px;margin-left:4px">${(data.ip_addresses || []).join(', ') || '—'}</span></div><div class="stat-row"><span class="stat-label">↑ SEND</span><span class="stat-val">${data.rates?.send_mb_per_s ?? '—'} MB/s</span><span class="stat-label" style="margin-left:16px">↓ RECV</span><span class="stat-val">${data.rates?.recv_mb_per_s ?? '—'} MB/s</span></div>`;
                 body.appendChild(div);
             });
         }
 
+        function renderServerSys(d) {
+            document.getElementById('srv-hostname').textContent = d.hostname || '—';
+            document.getElementById('srv-os').textContent = d.distro || d.os || '—';
+            document.getElementById('srv-kernel').textContent = d.kernel || '—';
+            document.getElementById('srv-cpumodel').textContent = d.cpu_model ? d.cpu_model.replace(/\(R\)|\(TM\)/g, '') : '—';
+            document.getElementById('srv-ram').textContent = d.total_ram_gb ? d.total_ram_gb + ' GB' : '—';
+            document.getElementById('srv-uptime').textContent = d.uptime || '—';
+        }
+
         // ═══════════════════════════════════════════════════════
-        //  DEVICE PAGE
+        //  DEVICE PAGE (Mac/client — uses /api/tool via remote)
         // ═══════════════════════════════════════════════════════
         async function loadDevice() {
             const btn = document.getElementById('device-refresh');
             btn.classList.add('loading');
             try {
-                const [sys, net] = await Promise.all([
+                const [sys, net, cpu, mem] = await Promise.all([
                     callTool('get_system_info'),
                     callTool('get_network_io'),
+                    callTool('get_cpu_usage'),
+                    callTool('get_memory_usage'),
                 ]);
                 if (sys) renderSysInfo(sys);
                 if (net) renderIfaces(net);
+                if (cpu) renderDeviceCPU(cpu);
+                if (mem) renderDeviceMem(mem);
                 loadPings();
                 document.getElementById('device-ts').textContent = 'Updated ' + new Date().toLocaleTimeString();
                 deviceLoaded = true;
             } catch (e) {
                 console.error('device load error', e);
                 document.getElementById('device-ts').textContent = 'Load failed — ' + e.message;
-            } finally {
-                btn.classList.remove('loading');
-            }
+            } finally { btn.classList.remove('loading'); }
         }
 
         function renderSysInfo(d) {
@@ -1802,27 +2457,33 @@
             document.getElementById('dev-cpu').textContent = d.cpu_model ? d.cpu_model.replace(/\(R\)|\(TM\)/g, '') : '—';
             document.getElementById('dev-ram').textContent = d.total_ram_gb ? d.total_ram_gb + ' GB' : '—';
             document.getElementById('dev-uptime').textContent = d.uptime || '—';
-            document.getElementById('dev-boot').textContent = d.boot_time || '—';
+        }
+
+        function renderDeviceCPU(d) {
+            const pct = d.overall_percent ?? 0; const cls = sc(pct);
+            setBigNum('dev-cpu-pct', pct);
+            setBar('dev-cpu-bar', pct);
+            setBadge('dev-metrics-badge', cls.toUpperCase(), cls);
+            const la = d.load_averages;
+            document.getElementById('dev-load').textContent = la ? la['1min'] : '—';
+        }
+
+        function renderDeviceMem(d) {
+            const ram = d.ram; if (!ram) return;
+            document.getElementById('dev-mem-used').textContent = fmtMB(ram.used_mb ?? 0);
+            document.getElementById('dev-mem-total').textContent = fmtMB(ram.total_mb ?? 0);
+            document.getElementById('dev-mem-pct').textContent = (ram.percent ?? 0).toFixed(1) + '%';
         }
 
         function renderIfaces(d) {
-            const ifaces = d.interfaces || {};
-            const degraded = d.degraded_interfaces || [];
+            const ifaces = d.interfaces || {}, degraded = d.degraded_interfaces || [];
             const cls = degraded.length ? 'warn' : 'ok';
             setBadge('iface-badge', degraded.length ? 'DEGRADED' : 'HEALTHY', cls);
-
             const body = document.getElementById('iface-body'); body.innerHTML = '';
             Object.entries(ifaces).forEach(([name, data]) => {
                 const isUp = data.is_up !== false;
                 const div = document.createElement('div'); div.className = 'net-iface-card';
-                div.innerHTML = `
-            <div class="net-iface-name">
-                <div class="status-dot ${isUp ? 'up' : 'down'}"></div>
-                ${escHtml(name)}
-                <span style="color:var(--text-dim);font-size:10px;margin-left:4px">${(data.ip_addresses || []).join(', ') || '—'}</span>
-            </div>
-            <div class="stat-row"><span class="stat-label">SENT</span><span class="stat-val">${data.totals?.sent_mb ?? '—'} MB</span></div>
-            <div class="stat-row"><span class="stat-label">RECV</span><span class="stat-val">${data.totals?.recv_mb ?? '—'} MB</span></div>`;
+                div.innerHTML = `<div class="net-iface-name"><div class="status-dot ${isUp ? 'up' : 'down'}"></div>${escHtml(name)}<span style="color:var(--text-dim);font-size:10px;margin-left:4px">${(data.ip_addresses || []).join(', ') || '—'}</span><span style="color:var(--text-dim);font-size:10px;margin-left:auto">↑${data.rates?.send_mb_per_s ?? '?'} ↓${data.rates?.recv_mb_per_s ?? '?'} MB/s</span></div><div class="stat-row"><span class="stat-label">TOTAL SENT</span><span class="stat-val">${data.totals?.sent_mb ?? '—'} MB</span><span class="stat-label" style="margin-left:16px">TOTAL RECV</span><span class="stat-val">${data.totals?.recv_mb ?? '—'} MB</span></div>`;
                 body.appendChild(div);
             });
         }
@@ -1831,13 +2492,11 @@
             ['ping-g', 'ping-cf', 'ping-loss'].forEach(id => document.getElementById(id).textContent = '…');
             document.getElementById('ping-status').textContent = 'pinging…';
             setBadge('ping-badge', 'CHECKING', 'dim');
-
             try {
                 const [pg, pcf] = await Promise.all([
                     callTool('ping_host', { host: '8.8.8.8', count: 4 }),
                     callTool('ping_host', { host: '1.1.1.1', count: 4 }),
                 ]);
-
                 function showPing(elId, barsId, data) {
                     if (!data) return;
                     const avg = data.latency_ms?.avg ?? null;
@@ -1845,26 +2504,14 @@
                     el.textContent = avg != null ? Math.round(avg) : (data.reachable ? '?' : 'X');
                     const cls = !data.reachable ? 'crit' : avg == null ? '' : avg < 25 ? '' : avg < 80 ? 'warn' : 'crit';
                     el.className = 'ping-num ' + cls;
-
                     const bars = document.getElementById(barsId); bars.innerHTML = '';
-                    // Decorative bars — visualise variation
-                    const heights = [60, 45, 70, 38, 55, 65, 42, 58];
-                    heights.forEach(h => {
-                        const b = document.createElement('div');
-                        b.className = 'ping-bar ' + cls;
-                        b.style.height = h + '%';
-                        bars.appendChild(b);
-                    });
+                    [60, 45, 70, 38, 55, 65, 42, 58].forEach(h => { const b = document.createElement('div'); b.className = 'ping-bar ' + cls; b.style.height = h + '%'; bars.appendChild(b); });
                 }
-
                 showPing('ping-g', 'ping-g-bars', pg);
                 showPing('ping-cf', 'ping-cf-bars', pcf);
-
                 const loss = pg?.packet_loss_percent ?? 0;
                 const lossEl = document.getElementById('ping-loss');
-                lossEl.textContent = loss;
-                lossEl.className = 'ping-num ' + (loss > 10 ? 'crit' : loss > 0 ? 'warn' : '');
-
+                lossEl.textContent = loss; lossEl.className = 'ping-num ' + (loss > 10 ? 'crit' : loss > 0 ? 'warn' : '');
                 const ok = pg?.reachable && pcf?.reachable;
                 setBadge('ping-badge', ok ? 'REACHABLE' : 'ISSUES', ok ? 'ok' : 'crit');
                 document.getElementById('ping-status').textContent = ok ? 'All targets online.' : 'One or more targets unreachable.';
@@ -1875,26 +2522,301 @@
         }
 
         // ═══════════════════════════════════════════════════════
+        //  THE PIT — Fixed terminal
+        // ═══════════════════════════════════════════════════════
+        let pitRunning = false;
+        let pitCmdHistory = [];
+        let pitHistIdx = -1;
+        let pitCurrentCmd = ''; // saves draft while navigating history
+
+        function pitLine(type, text) {
+            const out = document.getElementById('pit-output');
+            const div = document.createElement('div');
+            div.className = 'pit-line';
+            if (type === 'cmd') {
+                div.innerHTML = `<span class="pit-line-prompt">brick@pit:/workspace$</span><span class="pit-line-cmd"> ${escHtml(text)}</span>`;
+            } else if (type === 'system') {
+                div.innerHTML = `<span class="pit-line-out system">${escHtml(text)}</span>`;
+            } else {
+                const cls = type === 'error' ? 'error' : type === 'info' ? 'info' : type === 'success' ? 'success' : '';
+                div.innerHTML = `<span class="pit-line-out ${cls}">${escHtml(text)}</span>`;
+            }
+            out.appendChild(div);
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function pitSetRunning(running) {
+            pitRunning = running;
+            const btn = document.getElementById('pit-run-btn');
+            const inp = document.getElementById('pit-cmd');
+            btn.disabled = running;
+            inp.disabled = running;
+            if (!running) {
+                // Re-focus input after command finishes
+                inp.focus();
+            }
+        }
+
+        async function initPit() {
+            pitLoaded = true;
+            pitLine('system', '▣  THE PIT — Brick\'s personal sandbox. Alpine Linux. Persistent.');
+            pitLine('system', '   Connecting to brick-sandbox…');
+            await loadPitStatus();
+            await loadPitFiles();
+        }
+
+        async function loadPitStatus() {
+            try {
+                const s = await callTool('sandbox_status');
+                const dot = document.getElementById('pit-dot');
+                const statusText = document.getElementById('pit-status-text');
+                const badge = document.getElementById('pit-tab-badge');
+                if (s.running) {
+                    dot.className = 'pit-online-dot on'; statusText.textContent = 'RUNNING';
+                    badge.textContent = 'LIVE'; badge.className = 'tab-badge live';
+                    pitLine('success', '   Connected. Container is up.');
+                } else if (s.exists) {
+                    dot.className = 'pit-online-dot err'; statusText.textContent = 'STOPPED';
+                    badge.textContent = 'OFF'; badge.className = 'tab-badge';
+                    pitLine('error', '   Container exists but is not running.');
+                } else {
+                    dot.className = 'pit-online-dot err'; statusText.textContent = 'NOT FOUND';
+                    badge.textContent = '—'; badge.className = 'tab-badge';
+                    pitLine('error', '   Container not found. Run: docker compose up -d');
+                }
+                document.getElementById('pit-image').textContent = s.image ? s.image.split(':').pop() : '—';
+                document.getElementById('pit-started').textContent = s.started_at ? s.started_at.replace('T', ' ').slice(0, 19) : '—';
+                if (s.resources) {
+                    document.getElementById('pit-cpu').textContent = s.resources.cpu_percent || '—';
+                    document.getElementById('pit-mem').textContent = s.resources.memory_usage || '—';
+                    document.getElementById('pit-disk').textContent = s.disk ? s.disk.split(/\s+/).slice(1, 3).join(' / ') : '—';
+                }
+            } catch (e) {
+                pitLine('error', '   Status check failed: ' + e.message);
+                document.getElementById('pit-status-text').textContent = 'ERROR';
+                document.getElementById('pit-dot').className = 'pit-online-dot err';
+                document.getElementById('pit-tab-badge').textContent = '!';
+            }
+        }
+
+        async function loadPitFiles() {
+            const list = document.getElementById('pit-file-list');
+            list.innerHTML = '<div class="pit-file-empty">listing…</div>';
+            try {
+                const result = await callTool('sandbox_list_files', { path: '/workspace', recursive: false });
+                const raw = result.output || '';
+                const lines = raw.split('\n').filter(l => l.trim());
+                list.innerHTML = '';
+                let files = [];
+                for (const line of lines) {
+                    if (line.startsWith('total') || line.startsWith('Listing')) continue;
+                    const parts = line.split(/\s+/);
+                    if (parts.length < 9) continue;
+                    const perms = parts[0], size = parts[4], name = parts.slice(8).join(' ');
+                    if (name === '.' || name === '..') continue;
+                    const isDir = perms.startsWith('d'), isExec = !isDir && perms.includes('x');
+                    files.push({ name, size, isDir, isExec });
+                }
+                files.sort((a, b) => { if (a.isDir && !b.isDir) return -1; if (!a.isDir && b.isDir) return 1; return a.name.localeCompare(b.name); });
+                if (!files.length) { list.innerHTML = '<div class="pit-file-empty">empty workspace</div>'; return; }
+                for (const f of files) {
+                    const item = document.createElement('div');
+                    item.className = 'pit-file-item' + (f.isDir ? ' dir' : f.isExec ? ' executable' : '');
+                    const icon = f.isDir ? '▸' : f.isExec ? '⚡' : '·';
+                    item.innerHTML = `<span class="pit-file-icon">${icon}</span><span class="pit-file-name">${escHtml(f.name)}</span><span class="pit-file-size">${f.isDir ? '' : f.size}</span>`;
+                    if (!f.isDir) { item.title = 'Click to view'; item.onclick = () => readPitFile('/workspace/' + f.name); }
+                    list.appendChild(item);
+                }
+            } catch (e) {
+                list.innerHTML = `<div class="pit-file-empty" style="color:var(--danger)">error: ${escHtml(e.message)}</div>`;
+            }
+        }
+
+        async function readPitFile(path) {
+            pitLine('system', `cat ${path}`);
+            pitSetRunning(true);
+            try {
+                const result = await callTool('sandbox_read_file', { path, max_bytes: 4096 });
+                const content = result.content || '';
+                content.split('\n').forEach(l => pitLine('out', l));
+                if (result.truncated) pitLine('info', `… truncated (${result.bytes} bytes total)`);
+            } catch (e) {
+                pitLine('error', 'Error: ' + e.message);
+            } finally { pitSetRunning(false); }
+        }
+
+        async function runPitCommand() {
+            const input = document.getElementById('pit-cmd');
+            const cmd = input.value.trim();
+            if (!cmd || pitRunning) return;
+
+            input.value = '';
+            pitCurrentCmd = '';
+            pitHistIdx = -1;
+
+            // Add to history (deduplicate consecutive)
+            if (pitCmdHistory[0] !== cmd) {
+                pitCmdHistory.unshift(cmd);
+                if (pitCmdHistory.length > 100) pitCmdHistory.pop();
+            }
+
+            pitLine('cmd', cmd);
+            pitSetRunning(true);
+            document.getElementById('pit-exit-code').textContent = '';
+
+            try {
+                const result = await callTool('sandbox_exec', { command: cmd, workdir: '/workspace' });
+                const stdout = (result.stdout || '').trimEnd();
+                const stderr = (result.stderr || '').trimEnd();
+                const code = result.exit_code ?? '?';
+
+                if (stdout) stdout.split('\n').forEach(l => pitLine('out', l));
+                if (stderr) stderr.split('\n').forEach(l => pitLine('error', l));
+                if (result.truncated) pitLine('info', '… output truncated');
+
+                const codeEl = document.getElementById('pit-exit-code');
+                if (code === 0) { codeEl.textContent = 'exit 0'; codeEl.style.color = '#28c840'; }
+                else { codeEl.textContent = 'exit ' + code; codeEl.style.color = 'var(--danger)'; }
+
+                // Silently refresh file list after commands that modify the filesystem
+                if (/\b(mkdir|touch|wget|curl|cp|mv|git|python|python3|pip|pip3|apk|tee|cat\s+>|echo\s+>|write)\b/.test(cmd)) {
+                    setTimeout(loadPitFiles, 600);
+                }
+            } catch (e) {
+                pitLine('error', 'Execution failed: ' + e.message);
+                const codeEl = document.getElementById('pit-exit-code');
+                codeEl.textContent = 'error'; codeEl.style.color = 'var(--danger)';
+            } finally {
+                pitSetRunning(false);
+            }
+        }
+
+        function pitClearTerminal() {
+            document.getElementById('pit-output').innerHTML = '';
+            document.getElementById('pit-exit-code').textContent = '';
+            pitLine('system', '▣  Terminal cleared.');
+        }
+
+        async function pitResetSandbox() {
+            if (!confirm('RESET THE PIT?\n\nThis destroys all sandbox data. Irreversible.\n\nBrick will note his displeasure.')) return;
+            pitLine('system', '⚠  Initiating sandbox reset…');
+            pitSetRunning(true);
+            try {
+                const result = await callTool('sandbox_reset', { confirm: true });
+                if (result.reset_complete) pitLine('success', '✓  ' + (result.message || 'Sandbox reset.'));
+                else { pitLine('error', '✗  Reset may have failed.'); if (result.steps) pitLine('info', JSON.stringify(result.steps)); }
+                await loadPitStatus();
+                await loadPitFiles();
+            } catch (e) {
+                pitLine('error', 'Reset error: ' + e.message);
+            } finally { pitSetRunning(false); }
+        }
+
+        // Package install strip
+        function showPkgStrip() { document.getElementById('pit-pkg-strip').classList.add('visible'); document.getElementById('pit-write-strip').classList.remove('visible'); setTimeout(() => document.getElementById('pit-pkg-name').focus(), 50); }
+        function hidePkgStrip() { document.getElementById('pit-pkg-strip').classList.remove('visible'); document.getElementById('pit-pkg-name').value = ''; }
+
+        async function runPkgInstall() {
+            const pkg = document.getElementById('pit-pkg-name').value.trim();
+            const mgr = document.getElementById('pit-pkg-mgr').value;
+            if (!pkg) return;
+            hidePkgStrip();
+            pitLine('system', `Installing: ${pkg} (${mgr})`);
+            pitSetRunning(true);
+            try {
+                const result = await callTool('sandbox_install_package', { package: pkg, manager: mgr });
+                const out = (result.output || '').trimEnd();
+                out.split('\n').forEach(l => pitLine(result.success ? 'out' : 'error', l));
+                pitLine(result.success ? 'success' : 'error', result.success ? `✓ Installed: ${pkg}` : `✗ Install failed`);
+            } catch (e) {
+                pitLine('error', 'Install error: ' + e.message);
+            } finally { pitSetRunning(false); }
+        }
+
+        // Write file strip
+        function showWriteStrip() { document.getElementById('pit-write-strip').classList.add('visible'); document.getElementById('pit-pkg-strip').classList.remove('visible'); setTimeout(() => document.getElementById('pit-write-path').focus(), 50); }
+        function hideWriteStrip() { document.getElementById('pit-write-strip').classList.remove('visible'); document.getElementById('pit-write-path').value = ''; document.getElementById('pit-write-content').value = ''; document.getElementById('pit-write-mode').value = '644'; }
+
+        async function runWriteFile() {
+            const path = document.getElementById('pit-write-path').value.trim();
+            const content = document.getElementById('pit-write-content').value;
+            const mode = document.getElementById('pit-write-mode').value.trim() || '644';
+            if (!path) return;
+            hideWriteStrip();
+            pitLine('system', `Writing file: ${path}`);
+            pitSetRunning(true);
+            try {
+                const result = await callTool('sandbox_write_file', { path, content, mode });
+                if (result.success) pitLine('success', `✓ File written: ${path} (${result.bytes_written} bytes, mode ${mode})`);
+                else pitLine('error', '✗ Write failed');
+                setTimeout(loadPitFiles, 400);
+            } catch (e) {
+                pitLine('error', 'Write error: ' + e.message);
+            } finally { pitSetRunning(false); }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  KEYBOARD HANDLING — Pit terminal
+        // ═══════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            const pitInput = document.getElementById('pit-cmd');
+
+            pitInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    runPitCommand();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (!pitCmdHistory.length) return;
+                    if (pitHistIdx === -1) {
+                        // Save what's currently typed before going into history
+                        pitCurrentCmd = pitInput.value;
+                    }
+                    if (pitHistIdx < pitCmdHistory.length - 1) {
+                        pitHistIdx++;
+                        pitInput.value = pitCmdHistory[pitHistIdx];
+                        // Move cursor to end
+                        setTimeout(() => pitInput.setSelectionRange(pitInput.value.length, pitInput.value.length), 0);
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (pitHistIdx > 0) {
+                        pitHistIdx--;
+                        pitInput.value = pitCmdHistory[pitHistIdx];
+                    } else if (pitHistIdx === 0) {
+                        pitHistIdx = -1;
+                        pitInput.value = pitCurrentCmd;
+                    }
+                    setTimeout(() => pitInput.setSelectionRange(pitInput.value.length, pitInput.value.length), 0);
+                } else if (e.key === 'l' && e.ctrlKey) {
+                    e.preventDefault();
+                    pitClearTerminal();
+                } else if (e.key === 'c' && e.ctrlKey) {
+                    // Ctrl+C — cancel any in-progress feel (can't actually kill the fetch but gives feedback)
+                    if (pitRunning) {
+                        pitLine('system', '^C');
+                    }
+                }
+            });
+
+            document.getElementById('pit-pkg-name').addEventListener('keydown', e => {
+                if (e.key === 'Enter') runPkgInstall();
+                if (e.key === 'Escape') hidePkgStrip();
+            });
+
+            document.getElementById('pit-write-path').addEventListener('keydown', e => {
+                if (e.key === 'Escape') hideWriteStrip();
+            });
+        });
+
+        // ═══════════════════════════════════════════════════════
         //  CHAT
         // ═══════════════════════════════════════════════════════
         const TOOL_META = {
-            get_cpu_usage: 'CPU Usage', get_memory_usage: 'Memory', get_disk_usage: 'Disk Usage',
-            get_system_info: 'System Info', get_temperatures: 'Temperatures', get_inode_usage: 'Inode Usage',
-            list_processes: 'List Processes', search_process: 'Search Process', kill_process: 'Kill Process',
-            set_process_priority: 'Set Priority', get_connections: 'Connections', ping_host: 'Ping Host',
-            get_network_io: 'Network I/O', tail_log: 'Tail Log', find_large_files: 'Find Large Files',
-            list_directory: 'List Dir', list_services: 'List Services', get_service_status: 'Service Status',
-            get_login_history: 'Login History', get_cron_jobs: 'Cron Jobs',
-            sandbox_exec: 'The Pit: Exec', sandbox_status: 'The Pit: Status',
-            sandbox_write_file: 'The Pit: Write', sandbox_read_file: 'The Pit: Read',
-            sandbox_list_files: 'The Pit: List', sandbox_install_package: 'The Pit: Install',
-            sandbox_reset: 'The Pit: RESET ⚠',
+            get_cpu_usage: 'CPU Usage', get_memory_usage: 'Memory', get_disk_usage: 'Disk Usage', get_system_info: 'System Info', get_temperatures: 'Temperatures', get_inode_usage: 'Inode Usage', list_processes: 'List Processes', search_process: 'Search Process', kill_process: 'Kill Process', set_process_priority: 'Set Priority', get_connections: 'Connections', ping_host: 'Ping Host', get_network_io: 'Network I/O', tail_log: 'Tail Log', find_large_files: 'Find Large Files', list_directory: 'List Dir', list_services: 'List Services', get_service_status: 'Service Status', get_login_history: 'Login History', get_cron_jobs: 'Cron Jobs', sandbox_exec: 'The Pit: Exec', sandbox_status: 'The Pit: Status', sandbox_write_file: 'The Pit: Write', sandbox_read_file: 'The Pit: Read', sandbox_list_files: 'The Pit: List', sandbox_install_package: 'The Pit: Install', sandbox_reset: 'The Pit: RESET ⚠',
         };
         function toolLabel(name) { return TOOL_META[name] || name; }
-        function fmtParams(p) {
-            if (!p || typeof p !== 'object') return '';
-            const e = Object.entries(p); return e.length === 0 ? '(no params)' : e.map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n');
-        }
+        function fmtParams(p) { if (!p || typeof p !== 'object') return ''; const e = Object.entries(p); return e.length === 0 ? '(no params)' : e.map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n'); }
 
         function createPill(name, params) {
             const pill = document.createElement('div'); pill.className = 'tool-pill running';
@@ -1912,11 +2834,7 @@
 
         function finishPill(pill, result, isErr = false) {
             const spinner = pill.querySelector('.tool-spinner');
-            if (spinner) {
-                const icon = document.createElement('span'); icon.className = 'tool-status-icon';
-                icon.textContent = isErr ? '✗' : '✓'; icon.style.color = isErr ? 'var(--danger)' : '#28c840';
-                spinner.replaceWith(icon);
-            }
+            if (spinner) { const icon = document.createElement('span'); icon.className = 'tool-status-icon'; icon.textContent = isErr ? '✗' : '✓'; icon.style.color = isErr ? 'var(--danger)' : '#28c840'; spinner.replaceWith(icon); }
             pill.classList.remove('running'); pill.classList.add(isErr ? 'error' : 'done');
             const rc = pill.querySelector('.result-content');
             if (rc) { let d = result; try { d = JSON.stringify(JSON.parse(result), null, 2) } catch (_) { } rc.textContent = d; }
@@ -1934,10 +2852,8 @@
 
         function appendUser(content) {
             document.getElementById('emptyState')?.remove();
-            const g = document.createElement('div'); g.className = 'msg-group';
-            g.appendChild(buildMsg('user', content));
-            document.getElementById('messages').appendChild(g);
-            scrollBottom();
+            const g = document.createElement('div'); g.className = 'msg-group'; g.appendChild(buildMsg('user', content));
+            document.getElementById('messages').appendChild(g); scrollBottom();
         }
 
         async function loadHistory() {
@@ -1969,7 +2885,6 @@
             const msgs = document.getElementById('messages');
             const group = document.createElement('div'); group.className = 'msg-group'; msgs.appendChild(group);
             const strip = document.createElement('div'); strip.className = 'tool-strip'; group.appendChild(strip);
-
             const aMsg = document.createElement('div'); aMsg.className = 'msg assistant';
             const rl = document.createElement('div'); rl.className = 'msg-role'; rl.textContent = 'BRICK';
             const body = document.createElement('div'); body.className = 'msg-body';
@@ -1993,7 +2908,7 @@
                     const lines = buf.split('\n'); buf = lines.pop();
                     for (const l of lines) {
                         if (!l.startsWith('data: ')) continue;
-                        let ev; try { ev = JSON.parse(l.slice(6)); } catch (_) { continue; }
+                        let ev; try { ev = JSON.parse(l.slice(6)) } catch (_) { continue }
                         switch (ev.type) {
                             case 'tool_start': { body.querySelector('.typing')?.remove(); const p = createPill(ev.name, ev.parameters); strip.appendChild(p); pills.set(ev.name, p); scrollBottom(); break; }
                             case 'tool_result': { const p = pills.get(ev.name); if (p) finishPill(p, ev.result, (ev.result || '').startsWith('[')); scrollBottom(); break; }
@@ -2008,7 +2923,8 @@
                 body.innerHTML = `<span style="color:var(--danger)">[Connection error: ${escHtml(e.message)}]</span>`;
             } finally {
                 document.getElementById('sendBtn').disabled = false;
-                document.getElementById('input').focus(); scrollBottom();
+                document.getElementById('input').focus();
+                scrollBottom();
             }
         }
 
