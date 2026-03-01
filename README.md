@@ -5,7 +5,7 @@ brick@system ~$ status
 ● BRICK  [operational]
    provider : ollama
    model    : devstral-small-2:24b
-   tools    : 27 registered
+   tools    : 28 registered
    sandbox  : running
 ```
 
