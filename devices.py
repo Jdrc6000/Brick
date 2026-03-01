@@ -10,13 +10,12 @@ DEVICES = [
         "description": "Josh's Macbook M4",
         "tags": ["mac", "laptop"],
     },
-    # Add more devices here:
-    # {
-    #     "name": "work-desktop",
-    #     "ip": "192.168.0.50",
-    #     "description": "Work desktop",
-    #     "tags": ["desktop"],
-    # },
+    {
+        "name": "wills-pc",
+        "ip": "192.168.0.118",
+        "description": "Will's PC",
+        "tags": ["pc", "windows"],
+    },
 ]
 
 # Built lookup tables

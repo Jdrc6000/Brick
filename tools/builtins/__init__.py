@@ -15,8 +15,10 @@ from tools.builtins.services_and_security import (
 from tools.builtins.system_info import GetSystemInfo, GetTemperatures, GetInodeUsage
 from tools.builtins.system_metrics import GetCpuUsage, GetMemoryUsage, GetDiskUsage
 from tools.builtins.sandbox import SandboxExec, SandboxStatus, SandboxWriteFile, SandboxReadFile, SandboxInstallPackage, SandboxListFiles, SandboxReset
+from tools.builtins.web_search import WebSearch
 
 __all__ = [
+    # sysadmin
     "TailLog",
     "FindLargeFiles",
     "ListDirectory",
@@ -45,5 +47,7 @@ __all__ = [
     "SandboxReadFile",
     "SandboxInstallPackage",
     "SandboxListFiles", 
-    "SandboxReset"
+    "SandboxReset",
+    
+    "WebSearch",
 ]

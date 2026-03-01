@@ -9,7 +9,8 @@ from tools.builtins import (
     GetConnections, PingHost, GetNetworkIO,
     TailLog, FindLargeFiles, ListDirectory,
     ListServices, GetServiceStatus, GetLoginHistory, GetCronJobs,
-    SandboxExec, SandboxInstallPackage, SandboxListFiles, SandboxReadFile, SandboxReset, SandboxStatus, SandboxWriteFile
+    SandboxExec, SandboxInstallPackage, SandboxListFiles, SandboxReadFile, SandboxReset, SandboxStatus, SandboxWriteFile,
+    WebSearch
 )
 from agent import Agent
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -19,17 +20,18 @@ _agents: dict[str, Agent] = {}
 
 # Local tools instantiated once for /api/tool/local (server-side stats)
 _LOCAL_TOOLS = {
-    'get_cpu_usage':     GetCpuUsage(),
-    'get_memory_usage':  GetMemoryUsage(),
-    'get_disk_usage':    GetDiskUsage(),
-    'get_system_info':   GetSystemInfo(),
-    'get_temperatures':  GetTemperatures(),
-    'get_inode_usage':   GetInodeUsage(),
-    'list_processes':    ListProcesses(),
-    'search_process':    SearchProcess(),
-    'get_connections':   GetConnections(),
-    'ping_host':         PingHost(),
-    'get_network_io':    GetNetworkIO(),
+    "get_cpu_usage": GetCpuUsage(),
+    "get_memory_usage": GetMemoryUsage(),
+    "get_disk_usage": GetDiskUsage(),
+    "get_system_info": GetSystemInfo(),
+    "get_temperatures": GetTemperatures(),
+    "get_inode_usage": GetInodeUsage(),
+    "list_processes": ListProcesses(),
+    "search_process": SearchProcess(),
+    "get_connections": GetConnections(),
+    "ping_host": PingHost(),
+    "get_network_io": GetNetworkIO(),
+    "web_search": WebSearch()
 }
 
 TOOLS = [
@@ -39,11 +41,12 @@ TOOLS = [
     GetConnections(), PingHost(), GetNetworkIO(),
     TailLog(), FindLargeFiles(), ListDirectory(),
     ListServices(), GetServiceStatus(), GetLoginHistory(), GetCronJobs(),
-    SandboxExec(), SandboxInstallPackage(), SandboxListFiles(), SandboxReadFile(), SandboxReset(), SandboxStatus(), SandboxWriteFile()
+    SandboxExec(), SandboxInstallPackage(), SandboxListFiles(), SandboxReadFile(), SandboxReset(), SandboxStatus(), SandboxWriteFile(),
+    WebSearch()
 ]
 
 def get_agent(device: dict) -> "Agent":
-    session_id = f"device-{device['name']}"
+    session_id = f"device-{device["name"]}"
     if session_id not in _agents:
         log.info(
             "Creating new agent session for device: %s (remote ip: %s)",
@@ -134,9 +137,9 @@ def chat_stream(device: dict):
                 yield f"data: {json.dumps(event)}\n\n"
         except Exception as e:
             log.exception("Stream error for device %s", device["name"])
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            yield f"data: {json.dumps({"type": "error", "message": str(e)})}\n\n"
         finally:
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            yield f"data: {json.dumps({"type": "done"})}\n\n"
     return Response(
         stream_with_context(generate()),
         content_type="text/event-stream",
@@ -211,7 +214,7 @@ def history(device: dict):
 def reset(device: dict):
     agent = get_agent(device)
     agent.reset()
-    session_id = f"device-{device['name']}"
+    session_id = f"device-{device["name"]}"
     _agents.pop(session_id, None)
     return jsonify({"ok": True, "device": device["name"]})
 
