@@ -2,8 +2,11 @@ import psutil
 import time
 from tools.base import BaseTool
 
-def _to_mb(b): return round(b / 1024 / 1024, 1)
-def _to_gb(b): return round(b / 1024 / 1024 / 1024, 2)
+def _to_mb(b: int | float) -> float:
+    return round(b / 1_048_576, 1)
+
+def _to_gb(b: int | float) -> float:
+    return round(b / 1_073_741_824, 2)
 
 class GetCpuUsage(BaseTool):
     name = "get_cpu_usage"
@@ -19,15 +22,21 @@ class GetCpuUsage(BaseTool):
             "properties": {
                 "interval": {
                     "type": "number",
-                    "description": "Sampling interval in seconds (default 1.0 for accuracy)"
+                    "description": "Sampling interval in seconds (default 1.0 for accuracy)",
                 }
             },
-            "required": []
+            "required": [],
         }
 
     def run(self, interval: float = 1.0) -> dict:
-        overall = psutil.cpu_percent(interval=interval)
-        per_core = psutil.cpu_percent(interval=None, percpu=True)
+        interval = max(0.1, min(float(interval), 10.0))
+
+        # Single blocking call captures both overall and per-core correctly.
+        # Calling cpu_percent(percpu=True) separately after a blocking overall call
+        # returns ~0% for all cores (accumulated over microseconds only).
+        per_core: list[float] = psutil.cpu_percent(interval=interval, percpu=True)
+        overall: float = sum(per_core) / len(per_core) if per_core else 0.0
+
         times = psutil.cpu_times_percent(interval=None)
         times_breakdown = {
             "user": times.user,
@@ -40,7 +49,7 @@ class GetCpuUsage(BaseTool):
 
         try:
             load_1, load_5, load_15 = psutil.getloadavg()
-            cpu_count = psutil.cpu_count(logical=True)
+            cpu_count = psutil.cpu_count(logical=True) or 1
             load_avg = {
                 "1min": round(load_1, 2),
                 "5min": round(load_5, 2),
@@ -48,23 +57,27 @@ class GetCpuUsage(BaseTool):
                 "normalized_percent": round(load_1 / cpu_count * 100, 1),
             }
         except AttributeError:
-            load_avg = None  # Windows
+            load_avg = None  # Windows doesn't support getloadavg
 
         try:
             freqs = psutil.cpu_freq(percpu=True)
             per_core_freq = [
-                {"core": i, "current_mhz": round(f.current, 1), "max_mhz": round(f.max, 1)}
+                {
+                    "core": i,
+                    "current_mhz": round(f.current, 1),
+                    "max_mhz": round(f.max, 1),
+                }
                 for i, f in enumerate(freqs)
             ] if freqs else []
         except Exception:
             per_core_freq = []
 
-        iowait = times_breakdown.get("iowait") or 0
+        iowait = times_breakdown.get("iowait") or 0.0
         normalized = load_avg["normalized_percent"] if load_avg else overall
-        pressure = min(100, round(overall * 0.6 + iowait * 0.3 + normalized * 0.1, 1))
+        pressure = min(100.0, round(overall * 0.6 + iowait * 0.3 + normalized * 0.1, 1))
 
         return {
-            "overall_percent": overall,
+            "overall_percent": round(overall, 1),
             "per_core_percent": per_core,
             "core_count": {
                 "logical": psutil.cpu_count(logical=True),
@@ -85,7 +98,7 @@ class GetMemoryUsage(BaseTool):
     name = "get_memory_usage"
     description = (
         "Returns detailed RAM and swap statistics including pressure label, "
-        "top memory-consuming processes with RSS/VMS breakdown, and page fault rates."
+        "top memory-consuming processes with RSS breakdown, and page fault rates."
     )
 
     def parameters(self) -> dict:
@@ -94,14 +107,15 @@ class GetMemoryUsage(BaseTool):
             "properties": {
                 "top_processes": {
                     "type": "integer",
-                    "description": "Number of top memory processes to include (default 5, max 20)"
+                    "description": "Number of top memory processes to include (default 5, max 20)",
                 }
             },
-            "required": []
+            "required": [],
         }
 
     def run(self, top_processes: int = 5) -> dict:
-        top_processes = min(top_processes, 20)
+        top_processes = max(1, min(top_processes, 20))
+
         ram = psutil.virtual_memory()
         swap = psutil.swap_memory()
 
@@ -112,27 +126,31 @@ class GetMemoryUsage(BaseTool):
             "ok"
         )
 
-        procs = []
+        procs: list[dict] = []
         for p in psutil.process_iter(["pid", "name", "memory_info", "memory_percent"]):
             try:
                 mi = p.info["memory_info"]
                 procs.append({
                     "pid": p.info["pid"],
                     "name": p.info["name"],
-                    "shared_mb": _to_mb(getattr(mi, "shared", 0)),
-                    "memory_percent": round(p.info["memory_percent"] or 0, 2),
+                    "rss_mb": _to_mb(mi.rss) if mi else None,
+                    "memory_percent": round(p.info.get("memory_percent") or 0.0, 2),
                 })
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
 
-        procs.sort(key=lambda x: x["memory_percent"], reverse=True)
+        procs.sort(key=lambda x: x.get("memory_percent") or 0.0, reverse=True)
 
         try:
             with open("/proc/vmstat") as f:
-                vmstat = dict(line.split() for line in f if line.strip())
+                vmstat = {
+                    parts[0]: int(parts[1])
+                    for line in f
+                    if line.strip() and len((parts := line.split())) == 2
+                }
             page_faults = {
-                "minor_faults_total": int(vmstat.get("pgfault", 0)),
-                "major_faults_total": int(vmstat.get("pgmajfault", 0)),
+                "minor_faults_total": vmstat.get("pgfault", 0),
+                "major_faults_total": vmstat.get("pgmajfault", 0),
             }
         except Exception:
             page_faults = None
@@ -172,60 +190,75 @@ class GetDiskUsage(BaseTool):
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "Specific mount point (e.g. '/'). Omit for all."
+                    "description": "Specific mount point (e.g. '/'). Omit for all.",
                 },
                 "sample_io_seconds": {
                     "type": "number",
-                    "description": "Interval to sample I/O rates over (default 1.0)"
-                }
+                    "description": "Interval to sample I/O rates over (default 1.0)",
+                },
             },
-            "required": []
+            "required": [],
         }
 
-    def run(self, path: str = None, sample_io_seconds: float = 1.0) -> dict:
+    def run(self, path: str | None = None, sample_io_seconds: float = 1.0) -> dict:
+        sample_io_seconds = max(0.1, min(float(sample_io_seconds), 10.0))
+
         io_before = psutil.disk_io_counters(perdisk=True)
         time.sleep(sample_io_seconds)
         io_after = psutil.disk_io_counters(perdisk=True)
 
         partitions = psutil.disk_partitions()
-        usage_data = []
+        usage_data: list[dict] = []
+
         for p in partitions:
             if path and p.mountpoint != path:
                 continue
             try:
                 usage = psutil.disk_usage(p.mountpoint)
-                usage_data.append({
-                    "mountpoint": p.mountpoint,
-                    "device": p.device,
-                    "fstype": p.fstype,
-                    "total_gb": _to_gb(usage.total),
-                    "used_gb": _to_gb(usage.used),
-                    "free_gb": _to_gb(usage.free),
-                    "percent": usage.percent,
-                    "status": (
-                        "critical" if usage.percent > 90 else
-                        "warning" if usage.percent > 75 else
-                        "ok"
-                    ),
-                })
-            except (PermissionError, FileNotFoundError):
+            except (PermissionError, FileNotFoundError, OSError):
                 continue
 
-        io_rates = {}
-        for dev, after in io_after.items():
-            before = io_before.get(dev)
+            usage_data.append({
+                "mountpoint": p.mountpoint,
+                "device": p.device,
+                "fstype": p.fstype,
+                "total_gb": _to_gb(usage.total),
+                "used_gb": _to_gb(usage.used),
+                "free_gb": _to_gb(usage.free),
+                "percent": usage.percent,
+                "status": (
+                    "critical" if usage.percent > 90 else
+                    "warning" if usage.percent > 75 else
+                    "ok"
+                ),
+            })
+
+        io_rates: dict[str, dict] = {}
+        for dev, after in (io_after or {}).items():
+            before = (io_before or {}).get(dev)
             if not before:
                 continue
-            elapsed = sample_io_seconds
             reads_delta = max(after.read_count - before.read_count, 1)
             writes_delta = max(after.write_count - before.write_count, 1)
             io_rates[dev] = {
-                "read_mb_per_s": round((after.read_bytes - before.read_bytes) / elapsed / 1024 / 1024, 3),
-                "write_mb_per_s": round((after.write_bytes - before.write_bytes) / elapsed / 1024 / 1024, 3),
-                "reads_per_s": round((after.read_count - before.read_count) / elapsed, 1),
-                "writes_per_s": round((after.write_count - before.write_count) / elapsed, 1),
-                "avg_read_latency_ms": round((after.read_time - before.read_time) / reads_delta, 2),
-                "avg_write_latency_ms": round((after.write_time - before.write_time) / writes_delta, 2),
+                "read_mb_per_s": round(
+                    (after.read_bytes - before.read_bytes) / sample_io_seconds / 1_048_576, 3
+                ),
+                "write_mb_per_s": round(
+                    (after.write_bytes - before.write_bytes) / sample_io_seconds / 1_048_576, 3
+                ),
+                "reads_per_s": round(
+                    (after.read_count - before.read_count) / sample_io_seconds, 1
+                ),
+                "writes_per_s": round(
+                    (after.write_count - before.write_count) / sample_io_seconds, 1
+                ),
+                "avg_read_latency_ms": round(
+                    (after.read_time - before.read_time) / reads_delta, 2
+                ),
+                "avg_write_latency_ms": round(
+                    (after.write_time - before.write_time) / writes_delta, 2
+                ),
             }
 
         warnings = [p["mountpoint"] for p in usage_data if p["status"] != "ok"]

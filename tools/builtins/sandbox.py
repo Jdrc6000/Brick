@@ -1,26 +1,36 @@
 """
 Brick Sandbox tools — Brick's personal Docker environment.
-
 The sandbox is a persistent Alpine Linux container named 'brick-sandbox'.
-Brick treats it as his own turf: clean, controlled, personal.
 """
-
-import subprocess
-import shlex
+import json
+import logging
 import os
+import shlex
+import subprocess
+from pathlib import Path
 from tools.base import BaseTool
+
+log = logging.getLogger("brick.sandbox")
 
 SANDBOX_NAME = "brick-sandbox"
 EXEC_TIMEOUT = 30
-MAX_OUTPUT = 4000  # chars — truncate noisy commands
+MAX_OUTPUT = 4_000  # chars — truncate noisy commands
 
+# Absolute path to docker-compose.yml, resolved at import time so it
+# never depends on the process working directory.
+_THIS_FILE = Path(__file__).resolve()
+COMPOSE_FILE = (_THIS_FILE.parent.parent.parent / "docker-compose.yml").resolve()
+
+# Internal helpers
 def _docker_available() -> bool:
     try:
-        subprocess.run(["docker", "info"], capture_output=True, timeout=5)
-        return True
+        result = subprocess.run(
+            ["docker", "info"],
+            capture_output=True, text=True, timeout=5,
+        )
+        return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return False
-
 
 def _sandbox_running() -> bool:
     result = subprocess.run(
@@ -29,13 +39,11 @@ def _sandbox_running() -> bool:
     )
     return result.stdout.strip() == "true"
 
-
 def _ensure_sandbox() -> tuple[bool, str]:
     """Return (ok, error_message). Start sandbox if stopped."""
     if not _docker_available():
         return False, "Docker is not available on this system."
 
-    # Check if container exists at all
     check = subprocess.run(
         ["docker", "inspect", SANDBOX_NAME],
         capture_output=True, timeout=5,
@@ -47,7 +55,6 @@ def _ensure_sandbox() -> tuple[bool, str]:
         )
 
     if not _sandbox_running():
-        # Try to start it
         start = subprocess.run(
             ["docker", "start", SANDBOX_NAME],
             capture_output=True, text=True, timeout=10,
@@ -57,6 +64,7 @@ def _ensure_sandbox() -> tuple[bool, str]:
 
     return True, ""
 
+# Tools
 class SandboxExec(BaseTool):
     name = "sandbox_exec"
     description = (
@@ -88,7 +96,13 @@ class SandboxExec(BaseTool):
         }
 
     def run(self, command: str, workdir: str = "/workspace", timeout: int = 30) -> dict:
-        timeout = min(timeout, 120)
+        timeout = max(1, min(timeout, 120))
+
+        # Sanitise workdir: must be an absolute path, no shell metacharacters
+        # needed — it's passed as a positional arg to docker, not a shell.
+        if not workdir or not workdir.startswith("/"):
+            workdir = "/workspace"
+
         ok, err = _ensure_sandbox()
         if not ok:
             return {"error": err}
@@ -99,10 +113,9 @@ class SandboxExec(BaseTool):
             SANDBOX_NAME,
             "/bin/sh", "-c", command,
         ]
-
         try:
             result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=timeout
+                cmd, capture_output=True, text=True, timeout=timeout,
             )
             stdout = result.stdout[:MAX_OUTPUT]
             stderr = result.stderr[:MAX_OUTPUT]
@@ -113,11 +126,14 @@ class SandboxExec(BaseTool):
                 "stdout": stdout,
                 "stderr": stderr,
                 "success": result.returncode == 0,
-                "truncated": len(result.stdout) > MAX_OUTPUT or len(result.stderr) > MAX_OUTPUT,
+                "truncated": (
+                    len(result.stdout) > MAX_OUTPUT or len(result.stderr) > MAX_OUTPUT
+                ),
             }
         except subprocess.TimeoutExpired:
             return {"error": f"Command timed out after {timeout}s", "command": command}
         except Exception as e:
+            log.exception("SandboxExec failed")
             return {"error": str(e), "command": command}
 
 class SandboxStatus(BaseTool):
@@ -145,16 +161,14 @@ class SandboxStatus(BaseTool):
                 "message": f"Container '{SANDBOX_NAME}' does not exist.",
             }
 
-        import json
         try:
             info = json.loads(inspect.stdout)[0]
         except (json.JSONDecodeError, IndexError):
-            return {"error": "Failed to parse container info."}
+            return {"error": "Failed to parse container inspect output."}
 
         state = info.get("State", {})
         running = state.get("Running", False)
-
-        result = {
+        result: dict = {
             "exists": True,
             "running": running,
             "status": state.get("Status", "unknown"),
@@ -164,11 +178,13 @@ class SandboxStatus(BaseTool):
         }
 
         if running:
-            # Resource usage via docker stats (single snapshot, no-stream)
             stats = subprocess.run(
-                ["docker", "stats", "--no-stream", "--format",
-                 "{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}",
-                 SANDBOX_NAME],
+                [
+                    "docker", "stats", "--no-stream",
+                    "--format",
+                    "{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}",
+                    SANDBOX_NAME,
+                ],
                 capture_output=True, text=True, timeout=10,
             )
             if stats.returncode == 0 and stats.stdout.strip():
@@ -182,7 +198,6 @@ class SandboxStatus(BaseTool):
                         "block_io": parts[4],
                     }
 
-            # Disk usage inside container
             df = subprocess.run(
                 ["docker", "exec", SANDBOX_NAME, "df", "-h", "/"],
                 capture_output=True, text=True, timeout=5,
@@ -227,7 +242,10 @@ class SandboxWriteFile(BaseTool):
         if not ok:
             return {"error": err}
 
-        # Ensure parent dir exists
+        # Validate mode is a safe octal string.
+        if not mode or not mode.isdigit() or len(mode) not in (3, 4):
+            mode = "644"
+
         parent = os.path.dirname(path)
         if parent and parent != "/":
             mkdir = subprocess.run(
@@ -237,19 +255,27 @@ class SandboxWriteFile(BaseTool):
             if mkdir.returncode != 0:
                 return {"error": f"Failed to create directory {parent}: {mkdir.stderr}"}
 
-        # Write via stdin using docker exec
         write = subprocess.run(
-            ["docker", "exec", "-i", SANDBOX_NAME, "sh", "-c", f"cat > {shlex.quote(path)}"],
+            ["docker", "exec", "-i", SANDBOX_NAME, "sh", "-c",
+             f"cat > {shlex.quote(path)}"],
             input=content, capture_output=True, text=True, timeout=10,
         )
         if write.returncode != 0:
             return {"error": f"Write failed: {write.stderr.strip()}"}
 
-        # Set permissions
         chmod = subprocess.run(
             ["docker", "exec", SANDBOX_NAME, "chmod", mode, path],
             capture_output=True, text=True, timeout=5,
         )
+        if chmod.returncode != 0:
+            # File was written but chmod failed — report both outcomes.
+            return {
+                "success": True,
+                "path": path,
+                "bytes_written": len(content.encode()),
+                "mode": mode,
+                "chmod_warning": f"chmod failed: {chmod.stderr.strip()}",
+            }
 
         return {
             "success": True,
@@ -260,9 +286,7 @@ class SandboxWriteFile(BaseTool):
 
 class SandboxReadFile(BaseTool):
     name = "sandbox_read_file"
-    description = (
-        "Read the contents of a file from inside Brick's sandbox container."
-    )
+    description = "Read the contents of a file from inside Brick's sandbox container."
 
     def parameters(self) -> dict:
         return {
@@ -285,6 +309,8 @@ class SandboxReadFile(BaseTool):
         if not ok:
             return {"error": err}
 
+        max_bytes = max(1, min(max_bytes, 65536))
+
         result = subprocess.run(
             ["docker", "exec", SANDBOX_NAME, "cat", path],
             capture_output=True, text=True, timeout=10,
@@ -303,9 +329,7 @@ class SandboxReadFile(BaseTool):
 
 class SandboxListFiles(BaseTool):
     name = "sandbox_list_files"
-    description = (
-        "List files and directories inside Brick's sandbox container."
-    )
+    description = "List files and directories inside Brick's sandbox container."
 
     def parameters(self) -> dict:
         return {
@@ -329,14 +353,19 @@ class SandboxListFiles(BaseTool):
             return {"error": err}
 
         if recursive:
-            cmd = ["docker", "exec", SANDBOX_NAME, "find", path, "-maxdepth", "4",
-                   "-printf", "%M %u %s %p\n"]
+            # Use `find` with portable flags — BusyBox on Alpine does NOT support
+            # GNU find's -printf. Use `-ls` which is BusyBox-compatible.
+            cmd = [
+                "docker", "exec", SANDBOX_NAME,
+                "find", path, "-maxdepth", "4", "-ls",
+            ]
         else:
+            # `ls -lah` works on both Alpine/BusyBox and GNU coreutils.
             cmd = ["docker", "exec", SANDBOX_NAME, "ls", "-lah", path]
 
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if result.returncode != 0:
-            return {"error": result.stderr.strip()}
+            return {"error": result.stderr.strip() or f"Could not list {path}"}
 
         return {
             "path": path,
@@ -373,20 +402,24 @@ class SandboxInstallPackage(BaseTool):
             return {"error": err}
 
         if manager == "pip":
-            cmd_str = f"pip3 install --quiet {package} 2>&1 | tail -5"
+            # Alpine images may have pip3 or pip — try both.
+            cmd_str = (
+                f"pip3 install --quiet {package} 2>&1 "
+                f"|| pip install --quiet {package} 2>&1"
+            )
         else:
-            cmd_str = f"apk add --no-cache {package} 2>&1 | tail -10"
+            cmd_str = f"apk add --no-cache {package} 2>&1"
 
         result = subprocess.run(
             ["docker", "exec", SANDBOX_NAME, "/bin/sh", "-c", cmd_str],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True, text=True, timeout=120,
         )
-
+        output = (result.stdout + result.stderr)[:MAX_OUTPUT]
         return {
             "package": package,
             "manager": manager,
             "success": result.returncode == 0,
-            "output": (result.stdout + result.stderr)[:MAX_OUTPUT],
+            "output": output,
             "exit_code": result.returncode,
         }
 
@@ -413,41 +446,46 @@ class SandboxReset(BaseTool):
     def run(self, confirm: bool = False) -> dict:
         if not confirm:
             return {
-                "error": "Reset not confirmed. Pass confirm=true to proceed. "
-                         "This will destroy all sandbox data."
+                "error": (
+                    "Reset not confirmed. Pass confirm=true to proceed. "
+                    "This will destroy all sandbox data."
+                )
             }
 
         if not _docker_available():
             return {"error": "Docker not available."}
 
-        results = {}
+        results: dict = {}
 
-        # Stop
         stop = subprocess.run(
             ["docker", "stop", SANDBOX_NAME],
             capture_output=True, text=True, timeout=15,
         )
         results["stop"] = stop.returncode == 0
 
-        # Remove
         rm = subprocess.run(
             ["docker", "rm", SANDBOX_NAME],
             capture_output=True, text=True, timeout=10,
         )
         results["remove"] = rm.returncode == 0
 
-        # Recreate via docker compose
-        compose_file = os.path.join(os.path.dirname(__file__), "..", "..", "..", "docker-compose.yml")
-        if os.path.exists(compose_file):
+        # COMPOSE_FILE is an absolute Path resolved at import time.
+        if COMPOSE_FILE.exists():
             up = subprocess.run(
-                ["docker", "compose", "-f", compose_file, "up", "-d", "sandbox"],
-                capture_output=True, text=True, timeout=60,
+                [
+                    "docker", "compose",
+                    "-f", str(COMPOSE_FILE),
+                    "up", "-d", "sandbox",
+                ],
+                capture_output=True, text=True, timeout=120,
             )
             results["recreate"] = up.returncode == 0
             results["recreate_output"] = (up.stdout + up.stderr)[:500]
         else:
             results["recreate"] = False
-            results["note"] = "docker-compose.yml not found — recreate manually."
+            results["note"] = (
+                f"docker-compose.yml not found at {COMPOSE_FILE} — recreate manually."
+            )
 
         return {
             "reset_complete": results.get("remove", False),

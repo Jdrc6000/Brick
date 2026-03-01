@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <style>
         *,
         *::before,
@@ -547,7 +548,7 @@ Sign off exactly as: — Brick`,
                         } catch (_) { }
                     }
                 }
-                outputEl.innerHTML = marked.parse(fullText);
+                outputEl.innerHTML = DOMPurify.sanitize(marked.parse(fullText));
             } catch (err) {
                 thinkingEl?.remove();
                 statusDot.className = 'status-dot';

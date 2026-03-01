@@ -7,6 +7,7 @@
     <title>BRICK // {{ device.name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap"
         rel="stylesheet">
     <style>
@@ -2280,9 +2281,7 @@
     </div>
 
     <script>
-        // ═══════════════════════════════════════════════════════
         //  NAVIGATION
-        // ═══════════════════════════════════════════════════════
         let serverLoaded = false, deviceLoaded = false, pitLoaded = false;
 
         function switchPage(name, btn) {
@@ -2295,9 +2294,7 @@
             if (name === 'pit' && !pitLoaded) initPit();
         }
 
-        // ═══════════════════════════════════════════════════════
         //  HELPERS
-        // ═══════════════════════════════════════════════════════
         const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         const fmtMB = mb => mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : Math.round(mb) + ' MB';
         const sc = pct => pct > 90 ? 'crit' : pct > 75 ? 'warn' : 'ok';
@@ -2306,9 +2303,32 @@
         function setBar(id, pct, extra = '') { const el = document.getElementById(id); if (!el) return; el.style.width = pct + '%'; const c = sc(pct); el.className = 'prog-bar ' + extra + (c === 'ok' ? '' : ' ' + c); }
         function setBigNum(id, val, unit = '%', extra = '') { const el = document.getElementById(id); if (!el) return; const v = Math.round(parseFloat(val) || 0); const c = sc(v); el.innerHTML = v + `<sup>${unit}</sup>`; el.className = 'big-num ' + extra + (c === 'ok' ? '' : ' ' + c); }
 
+        const _TOOL_TIMEOUT_MS = 35_000;   // 35 s — matches server-side default
+        const _SANDBOX_EXEC_TIMEOUT_MS = 135_000;  // 135 s for sandbox_exec
+
+        function _fetchWithTimeout(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeoutMs);
+            return fetch(url, { ...options, signal: controller.signal })
+                .finally(() => clearTimeout(id));
+        }
+
         // Tool call — routes to remote device (Mac)
         async function callTool(toolName, params = {}) {
-            const r = await fetch('/api/tool', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: toolName, parameters: params }) });
+            // sandbox_exec can run up to 120 s — give it more headroom.
+            const ms = toolName === 'sandbox_exec' || toolName === 'sandbox_install_package'
+                ? _SANDBOX_EXEC_TIMEOUT_MS
+                : _TOOL_TIMEOUT_MS;
+
+            const r = await _fetchWithTimeout(
+                '/api/tool',
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: toolName, parameters: params }),
+                },
+                ms,
+            );
             const d = await r.json();
             if (!r.ok || d.error) throw new Error(d.error || `tool ${toolName} failed (${r.status})`);
             return d.result;
@@ -2316,15 +2336,21 @@
 
         // Local tool call — runs on Pi server
         async function callLocalTool(toolName, params = {}) {
-            const r = await fetch('/api/tool/local', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: toolName, parameters: params }) });
+            const r = await _fetchWithTimeout(
+                '/api/tool/local',
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: toolName, parameters: params }),
+                },
+                _TOOL_TIMEOUT_MS,
+            );
             const d = await r.json();
             if (!r.ok || d.error) throw new Error(d.error || `local tool ${toolName} failed (${r.status})`);
             return d.result;
         }
 
-        // ═══════════════════════════════════════════════════════
         //  SERVER PAGE (Pi — uses /api/tool/local)
-        // ═══════════════════════════════════════════════════════
         async function loadServer() {
             const btn = document.getElementById('server-refresh');
             btn.classList.add('loading');
@@ -2425,9 +2451,7 @@
             document.getElementById('srv-uptime').textContent = d.uptime || '—';
         }
 
-        // ═══════════════════════════════════════════════════════
         //  DEVICE PAGE (Mac/client — uses /api/tool via remote)
-        // ═══════════════════════════════════════════════════════
         async function loadDevice() {
             const btn = document.getElementById('device-refresh');
             btn.classList.add('loading');
@@ -2522,9 +2546,7 @@
             }
         }
 
-        // ═══════════════════════════════════════════════════════
         //  THE PIT — Fixed terminal
-        // ═══════════════════════════════════════════════════════
         let pitRunning = false;
         let pitCmdHistory = [];
         let pitHistIdx = -1;
@@ -2863,9 +2885,7 @@
             } finally { pitSetRunning(false); }
         }
 
-        // ═══════════════════════════════════════════════════════
         //  KEYBOARD HANDLING — Pit terminal
-        // ═══════════════════════════════════════════════════════
         document.addEventListener('DOMContentLoaded', () => {
             const pitInput = document.getElementById('pit-cmd');
 
@@ -2917,9 +2937,7 @@
             });
         });
 
-        // ═══════════════════════════════════════════════════════
         //  CHAT
-        // ═══════════════════════════════════════════════════════
         const TOOL_META = {
             get_cpu_usage: 'CPU Usage', get_memory_usage: 'Memory', get_disk_usage: 'Disk Usage', get_system_info: 'System Info', get_temperatures: 'Temperatures', get_inode_usage: 'Inode Usage', list_processes: 'List Processes', search_process: 'Search Process', kill_process: 'Kill Process', set_process_priority: 'Set Priority', get_connections: 'Connections', ping_host: 'Ping Host', get_network_io: 'Network I/O', tail_log: 'Tail Log', find_large_files: 'Find Large Files', list_directory: 'List Dir', list_services: 'List Services', get_service_status: 'Service Status', get_login_history: 'Login History', get_cron_jobs: 'Cron Jobs', sandbox_exec: 'The Pit: Exec', sandbox_status: 'The Pit: Status', sandbox_write_file: 'The Pit: Write', sandbox_read_file: 'The Pit: Read', sandbox_list_files: 'The Pit: List', sandbox_install_package: 'The Pit: Install', sandbox_reset: 'The Pit: RESET ⚠',
         };
@@ -2952,7 +2970,7 @@
             const msg = document.createElement('div'); msg.className = `msg ${role}`;
             const rl = document.createElement('div'); rl.className = 'msg-role'; rl.textContent = role === 'user' ? 'YOU' : 'BRICK';
             const body = document.createElement('div'); body.className = 'msg-body';
-            role === 'assistant' ? (body.innerHTML = marked.parse(content || '')) : (body.textContent = content);
+            role === 'assistant' ? (body.innerHTML = DOMPurify.sanitize(marked.parse(content || ''))) : (body.textContent = content);
             msg.append(rl, body); return msg;
         }
 
@@ -3004,7 +3022,7 @@
 
             function startStream() { if (streamStarted) return; streamStarted = true; body.innerHTML = ''; cursor = document.createElement('span'); cursor.className = 'stream-cursor'; body.appendChild(cursor); }
             function addToken(t) { startStream(); fullText += t; if (cursor?.parentNode) cursor.remove(); body.appendChild(document.createTextNode(t)); if (cursor) body.appendChild(cursor); scrollBottom(); }
-            function finalise() { if (cursor) cursor.remove(); body.innerHTML = marked.parse(fullText || '…'); }
+            function finalise() { if (cursor) cursor.remove(); body.innerHTML = DOMPurify.sanitize(marked.parse(fullText || '…')); }
 
             try {
                 const resp = await fetch('/api/chat/stream', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }) });
@@ -3026,7 +3044,7 @@
                         }
                     }
                 }
-                if (!streamStarted) body.innerHTML = marked.parse(fullText || '…'); else finalise();
+                if (!streamStarted) body.innerHTML = DOMPurify.sanitize(marked.parse(fullText || '…')); else finalise();
             } catch (e) {
                 body.innerHTML = `<span style="color:var(--danger)">[Connection error: ${escHtml(e.message)}]</span>`;
             } finally {

@@ -2,7 +2,7 @@ import os, json, logging
 from flask import Flask, request, jsonify, abort
 
 PORT = 7700
-BRICK_SERVER_IP = "192.168.0.67"
+BRICK_SERVER_IP = "192.168.0.39"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("brick-client")

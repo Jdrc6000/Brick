@@ -1,7 +1,21 @@
+"""
+File and log inspection tools.
+find -printf is GNU-specific and NOT available on macOS or Alpine/BusyBox.
+This module avoids -printf in all find invocations.
+"""
 import os
 import re
+import stat
 import subprocess
+import time
 from tools.base import BaseTool
+
+def _human_size(n: int) -> str:
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if n < 1024:
+            return f"{n:.1f} {unit}"
+        n //= 1024
+    return f"{n:.1f} PB"
 
 class TailLog(BaseTool):
     name = "tail_log"
@@ -11,6 +25,13 @@ class TailLog(BaseTool):
         "Also supports journalctl for systemd logs."
     )
 
+    LOG_ALIASES: dict[str, list[str] | None] = {
+        "syslog": ["/var/log/syslog", "/var/log/messages"],
+        "auth": ["/var/log/auth.log", "/var/log/secure"],
+        "kern": ["/var/log/kern.log"],
+        "dmesg": None,  # special — uses dmesg binary
+    }
+
     def parameters(self) -> dict:
         return {
             "type": "object",
@@ -18,7 +39,7 @@ class TailLog(BaseTool):
                 "source": {
                     "type": "string",
                     "description": (
-                        "Log source. Common aliases: 'syslog', 'auth', 'kern', 'dmesg', 'journal'. "
+                        "Log source. Aliases: 'syslog', 'auth', 'kern', 'dmesg', 'journal'. "
                         "Or an absolute file path like '/var/log/nginx/error.log'."
                     ),
                 },
@@ -32,27 +53,20 @@ class TailLog(BaseTool):
                 },
                 "unit": {
                     "type": "string",
-                    "description": "For 'journal' source: systemd unit name (e.g. 'nginx', 'sshd')",
+                    "description": "For 'journal' source: systemd unit name (e.g. 'nginx')",
                 },
             },
             "required": ["source"],
         }
 
-    LOG_ALIASES = {
-        "syslog": ["/var/log/syslog", "/var/log/messages"],
-        "auth": ["/var/log/auth.log", "/var/log/secure"],
-        "kern": ["/var/log/kern.log"],
-        "dmesg": None,  # special
-    }
-
     def run(
         self,
         source: str,
         lines: int = 50,
-        filter: str = None,
-        unit: str = None,
+        filter: str | None = None,
+        unit: str | None = None,
     ) -> dict:
-        lines = min(lines, 500)
+        lines = max(1, min(lines, 500))
 
         if source == "journal":
             cmd = ["journalctl", "--no-pager", "-n", str(lines), "--output=short-iso"]
@@ -69,25 +83,37 @@ class TailLog(BaseTool):
         elif source == "dmesg":
             try:
                 result = subprocess.run(
-                    ["dmesg", "--time-format=iso"], capture_output=True, text=True, timeout=10
+                    ["dmesg", "--time-format=iso"],
+                    capture_output=True, text=True, timeout=10,
                 )
                 raw_lines = result.stdout.splitlines()[-lines:]
+            except FileNotFoundError:
+                # Fallback: dmesg without --time-format (e.g. macOS)
+                try:
+                    result = subprocess.run(
+                        ["dmesg"], capture_output=True, text=True, timeout=10,
+                    )
+                    raw_lines = result.stdout.splitlines()[-lines:]
+                except Exception as e:
+                    return {"error": f"dmesg failed: {e}"}
             except Exception as e:
                 return {"error": f"dmesg failed: {e}"}
 
         else:
             candidates = self.LOG_ALIASES.get(source, [source])
             path = None
-            for candidate in candidates:
+            for candidate in (candidates or []):
                 if os.path.exists(candidate):
                     path = candidate
                     break
+
             if not path:
                 return {"error": f"Log not found. Tried: {candidates}"}
+
             try:
                 result = subprocess.run(
                     ["tail", "-n", str(lines), path],
-                    capture_output=True, text=True, timeout=10
+                    capture_output=True, text=True, timeout=10,
                 )
                 raw_lines = result.stdout.splitlines()
             except Exception as e:
@@ -138,14 +164,26 @@ class FindLargeFiles(BaseTool):
             "required": [],
         }
 
-    def run(self, path: str = "/", min_size_mb: float = 100, limit: int = 20) -> dict:
-        import time
-        limit = min(limit, 50)
-        min_bytes = int(min_size_mb * 1024 * 1024)
+    def run(
+        self,
+        path: str = "/",
+        min_size_mb: float = 100,
+        limit: int = 20,
+    ) -> dict:
+        limit = max(1, min(limit, 50))
+        min_size_mb = max(0.0, float(min_size_mb))
+        min_bytes = int(min_size_mb * 1_048_576)
+
+        # Use `find ... -size +NM` (portable) then stat results ourselves,
+        # avoiding GNU-only -printf which breaks on macOS and Alpine/BusyBox.
+        threshold_mb = max(0, int(min_size_mb) - 1)
         try:
             result = subprocess.run(
-                ["find", path, "-type", "f", "-size", f"+{int(min_size_mb - 1)}M",
-                 "-printf", "%s\t%T@\t%p\n"],
+                [
+                    "find", path,
+                    "-type", "f",
+                    "-size", f"+{threshold_mb}M",
+                ],
                 capture_output=True, text=True, timeout=30,
             )
         except subprocess.TimeoutExpired:
@@ -153,22 +191,23 @@ class FindLargeFiles(BaseTool):
         except FileNotFoundError:
             return {"error": "'find' command not available."}
 
-        files = []
-        for line in result.stdout.splitlines():
-            parts = line.split("\t", 2)
-            if len(parts) != 3:
+        files: list[dict] = []
+        for filepath in result.stdout.splitlines():
+            filepath = filepath.strip()
+            if not filepath:
                 continue
             try:
-                size = int(parts[0])
-                mtime = float(parts[1])
-                filepath = parts[2]
-                if size >= min_bytes:
-                    files.append({
-                        "path": filepath,
-                        "size_mb": round(size / 1024 / 1024, 1),
-                        "modified": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(mtime)),
-                    })
-            except (ValueError, OSError):
+                s = os.stat(filepath)
+                if s.st_size < min_bytes:
+                    continue
+                files.append({
+                    "path": filepath,
+                    "size_mb": round(s.st_size / 1_048_576, 1),
+                    "modified": time.strftime(
+                        "%Y-%m-%d %H:%M:%S", time.localtime(s.st_mtime)
+                    ),
+                })
+            except (OSError, PermissionError):
                 continue
 
         files.sort(key=lambda x: x["size_mb"], reverse=True)
@@ -206,16 +245,25 @@ class ListDirectory(BaseTool):
             "required": ["path"],
         }
 
-    def run(self, path: str, show_hidden: bool = False, sort_by: str = "name") -> dict:
-        import stat, pwd, grp, time
+    def run(
+        self,
+        path: str,
+        show_hidden: bool = False,
+        sort_by: str = "name",
+    ) -> dict:
+        import pwd
+        import grp
+
         try:
-            entries_raw = os.scandir(path)
+            entries_raw = list(os.scandir(path))
         except PermissionError:
             return {"error": f"Permission denied: {path}"}
         except FileNotFoundError:
             return {"error": f"Path not found: {path}"}
+        except OSError as e:
+            return {"error": f"Cannot list {path}: {e}"}
 
-        entries = []
+        entries: list[dict] = []
         for e in entries_raw:
             if not show_hidden and e.name.startswith("."):
                 continue
@@ -230,30 +278,36 @@ class ListDirectory(BaseTool):
                     group = grp.getgrgid(s.st_gid).gr_name
                 except KeyError:
                     group = str(s.st_gid)
+
                 entries.append({
                     "name": e.name,
-                    "type": "dir" if e.is_dir() else "symlink" if e.is_symlink() else "file",
+                    "type": (
+                        "dir" if e.is_dir(follow_symlinks=False)
+                        else "symlink" if e.is_symlink()
+                        else "file"
+                    ),
                     "size_bytes": s.st_size,
                     "size_human": _human_size(s.st_size),
                     "permissions": mode,
                     "owner": owner,
                     "group": group,
-                    "modified": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(s.st_mtime)),
+                    "modified": time.strftime(
+                        "%Y-%m-%d %H:%M:%S", time.localtime(s.st_mtime)
+                    ),
                 })
-            except (PermissionError, FileNotFoundError):
+            except (PermissionError, FileNotFoundError, OSError):
                 continue
 
-        sort_key = {"name": "name", "size": "size_bytes", "modified": "modified"}.get(sort_by, "name")
-        entries.sort(key=lambda x: x[sort_key], reverse=(sort_by == "size"))
+        sort_key = {"name": "name", "size": "size_bytes", "modified": "modified"}.get(
+            sort_by, "name"
+        )
+        entries.sort(
+            key=lambda x: x[sort_key],
+            reverse=(sort_by == "size"),
+        )
+
         return {
             "path": path,
             "count": len(entries),
             "entries": entries,
         }
-
-def _human_size(n: int) -> str:
-    for unit in ("B", "KB", "MB", "GB", "TB"):
-        if n < 1024:
-            return f"{n:.1f} {unit}"
-        n /= 1024
-    return f"{n:.1f} PB"
