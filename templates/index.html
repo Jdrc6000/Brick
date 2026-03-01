@@ -22,14 +22,11 @@
             --bg: #0a0c0f;
             --surface: #0e1116;
             --surface2: #141820;
-            --surface3: #0c1a14;
             --border: #1e2530;
-            --border-bright: #2a3545;
             --accent: #00e5a0;
             --accent-dim: #00a87088;
             --accent-glow: #00e5a022;
             --tool-accent: #f0b429;
-            --tool-accent-dim: #f0b42944;
             --tool-border: #2a2010;
             --tool-surface: #0c100a;
             --danger: #ff4455;
@@ -51,30 +48,27 @@
             overflow: hidden;
         }
 
+        /* CRT scanlines overlay */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
             pointer-events: none;
-            z-index: 1000;
+            z-index: 9000;
         }
 
-        /* ── Layout ── */
-        .shell {
+        /* ── APP SHELL ── */
+        .app {
             display: grid;
-            grid-template-rows: auto 1fr auto;
+            grid-template-rows: 48px 1fr;
             height: 100vh;
-            max-width: 900px;
-            margin: 0 auto;
         }
 
-        /* ── Header ── */
+        /* ── HEADER / NAV ── */
         header {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 20px;
+            align-items: stretch;
             border-bottom: 1px solid var(--border);
             background: var(--surface);
             position: relative;
@@ -91,36 +85,106 @@
         }
 
         .wordmark {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
             font-family: var(--mono);
-            font-size: 18px;
+            font-size: 16px;
             letter-spacing: 0.25em;
             color: var(--accent);
             text-shadow: 0 0 20px var(--accent-dim);
+            border-right: 1px solid var(--border);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
-        .wordmark span {
+        .wordmark sub {
+            font-size: 10px;
             color: var(--text-dim);
-            font-size: 11px;
             letter-spacing: 0.1em;
             margin-left: 10px;
+            vertical-align: middle;
         }
 
-        .device-tag {
+        nav {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .nav-tab {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
+            padding: 0 18px;
             font-family: var(--mono);
-            font-size: 11px;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            color: var(--text-dim);
+            cursor: pointer;
+            border: none;
+            border-right: 1px solid var(--border);
+            background: none;
+            transition: all 0.15s;
+            user-select: none;
+            position: relative;
+        }
+
+        .nav-tab:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-tab.active {
+            color: var(--accent);
+            background: var(--surface2);
+        }
+
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        .tab-badge {
+            background: var(--muted);
+            color: var(--bg);
+            font-size: 8px;
+            padding: 1px 5px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            margin-left: auto;
+            border-left: 1px solid var(--border);
+        }
+
+        .device-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 10px;
             color: var(--text-dim);
         }
 
-        .device-tag .dot {
+        .device-pill .pulse {
             width: 6px;
             height: 6px;
             border-radius: 50%;
             background: var(--accent);
             box-shadow: 0 0 6px var(--accent);
             animation: pulse 2s ease-in-out infinite;
+            flex-shrink: 0;
         }
 
         @keyframes pulse {
@@ -131,13 +195,8 @@
             }
 
             50% {
-                opacity: 0.4
+                opacity: 0.35
             }
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 8px;
         }
 
         .btn-ghost {
@@ -157,7 +216,45 @@
             color: var(--accent);
         }
 
-        /* ── Messages ── */
+        /* ── PAGES ── */
+        .page {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .page-scroll {
+            overflow-y: auto;
+            flex: 1;
+            padding: 24px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .page-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .page-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        /* ══════════════════════════════════════
+           CHAT PAGE
+        ══════════════════════════════════════ */
+        #page-chat {
+            display: none;
+        }
+
+        #page-chat.active {
+            display: grid;
+            grid-template-rows: 1fr auto;
+        }
+
         .messages {
             overflow-y: auto;
             padding: 20px;
@@ -170,10 +267,6 @@
 
         .messages::-webkit-scrollbar {
             width: 4px;
-        }
-
-        .messages::-webkit-scrollbar-track {
-            background: transparent;
         }
 
         .messages::-webkit-scrollbar-thumb {
@@ -235,7 +328,6 @@
             color: var(--text);
         }
 
-        /* Markdown */
         .msg-body code {
             font-family: var(--mono);
             font-size: 12px;
@@ -259,21 +351,21 @@
         }
 
         .msg-body p {
-            margin-bottom: 0.6em;
+            margin-bottom: 0.6em
         }
 
         .msg-body p:last-child {
-            margin-bottom: 0;
+            margin-bottom: 0
         }
 
         .msg-body ul,
         .msg-body ol {
             padding-left: 1.4em;
-            margin-bottom: 0.6em;
+            margin-bottom: 0.6em
         }
 
         .msg-body li {
-            margin-bottom: 0.2em;
+            margin-bottom: 0.2em
         }
 
         .msg-body h1,
@@ -282,19 +374,19 @@
             font-family: var(--mono);
             color: var(--accent);
             margin: 0.8em 0 0.3em;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.08em
         }
 
         .msg-body h1 {
-            font-size: 15px;
+            font-size: 15px
         }
 
         .msg-body h2 {
-            font-size: 14px;
+            font-size: 14px
         }
 
         .msg-body h3 {
-            font-size: 13px;
+            font-size: 13px
         }
 
         .msg-body table {
@@ -302,7 +394,7 @@
             font-size: 12px;
             font-family: var(--mono);
             margin: 8px 0;
-            width: 100%;
+            width: 100%
         }
 
         .msg-body th {
@@ -310,46 +402,35 @@
             color: var(--accent);
             padding: 4px 10px;
             border: 1px solid var(--border);
-            text-align: left;
+            text-align: left
         }
 
         .msg-body td {
             padding: 3px 10px;
             border: 1px solid var(--border);
-            color: var(--text-dim);
-        }
-
-        .msg-body blockquote {
-            border-left: 2px solid var(--accent-dim);
-            margin: 6px 0;
-            padding: 4px 12px;
-            color: var(--text-dim);
-            font-style: italic;
+            color: var(--text-dim)
         }
 
         .msg-body strong {
-            color: var(--text);
+            color: var(--text)
         }
 
         .msg-body a {
             color: var(--accent);
-            text-decoration: none;
+            text-decoration: none
         }
 
         .msg-body a:hover {
-            text-decoration: underline;
+            text-decoration: underline
         }
 
-        /* ── Tool strip ── */
         .tool-strip {
             display: flex;
             flex-direction: column;
             gap: 4px;
             padding-left: 64px;
-            /* aligns with msg-body */
         }
 
-        /* ── Tool pill (accordion) ── */
         .tool-pill {
             display: flex;
             flex-direction: column;
@@ -359,27 +440,20 @@
             font-family: var(--mono);
             font-size: 10px;
             overflow: hidden;
-            transition: border-color 0.15s;
-        }
-
-        .tool-pill.pending {
-            border-left-color: var(--muted);
-            opacity: 0.7;
         }
 
         .tool-pill.running {
-            border-left-color: var(--tool-accent);
+            border-left-color: var(--tool-accent)
         }
 
         .tool-pill.done {
-            border-left-color: #28c840;
+            border-left-color: #28c840
         }
 
         .tool-pill.error {
-            border-left-color: var(--danger);
+            border-left-color: var(--danger)
         }
 
-        /* Pill header — always visible, clickable */
         .tool-pill-header {
             display: flex;
             align-items: center;
@@ -387,21 +461,20 @@
             padding: 5px 10px;
             cursor: pointer;
             user-select: none;
-            transition: background 0.1s;
+            transition: background 0.1s
         }
 
         .tool-pill-header:hover {
-            background: rgba(240, 180, 41, 0.05);
+            background: rgba(240, 180, 41, 0.05)
         }
 
         .tool-status-icon {
             font-size: 11px;
             width: 14px;
             text-align: center;
-            flex-shrink: 0;
+            flex-shrink: 0
         }
 
-        /* Spinner for running state */
         .tool-spinner {
             width: 10px;
             height: 10px;
@@ -409,68 +482,63 @@
             border-top-color: var(--tool-accent);
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
-            flex-shrink: 0;
+            flex-shrink: 0
         }
 
         @keyframes spin {
             to {
-                transform: rotate(360deg);
+                transform: rotate(360deg)
             }
         }
 
         .tool-pill-name {
             color: var(--tool-accent);
             letter-spacing: 0.05em;
-            flex: 1;
+            flex: 1
         }
 
         .tool-pill.done .tool-pill-name {
-            color: #28c840;
+            color: #28c840
         }
 
         .tool-pill.error .tool-pill-name {
-            color: var(--danger);
-        }
-
-        .tool-pill.pending .tool-pill-name {
-            color: var(--muted);
+            color: var(--danger)
         }
 
         .tool-pill-chevron {
             font-size: 9px;
             color: var(--muted);
             transition: transform 0.2s;
-            margin-left: auto;
+            margin-left: auto
         }
 
         .tool-pill.open .tool-pill-chevron {
-            transform: rotate(180deg);
+            transform: rotate(180deg)
         }
 
-        /* Accordion body */
         .tool-pill-body {
             display: none;
-            border-top: 1px solid var(--tool-border);
+            border-top: 1px solid var(--tool-border)
         }
 
         .tool-pill.open .tool-pill-body {
-            display: block;
+            display: block
         }
 
         .tool-section {
             padding: 8px 12px;
-            border-bottom: 1px solid var(--tool-border);
+            border-bottom: 1px solid var(--tool-border)
         }
 
         .tool-section:last-child {
-            border-bottom: none;
+            border-bottom: none
         }
 
         .tool-section-label {
             font-size: 9px;
             letter-spacing: 0.15em;
             color: var(--muted);
-            margin-bottom: 4px;
+            margin-bottom: 4px
         }
 
         .tool-section-content {
@@ -480,23 +548,14 @@
             word-break: break-word;
             max-height: 200px;
             overflow-y: auto;
-            line-height: 1.6;
+            line-height: 1.6
         }
 
-        .tool-section-content::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .tool-section-content::-webkit-scrollbar-thumb {
-            background: var(--border);
-        }
-
-        /* ── Typing indicator ── */
         .typing {
             display: flex;
             align-items: center;
             gap: 4px;
-            padding-top: 4px;
+            padding-top: 4px
         }
 
         .typing .dot {
@@ -504,15 +563,15 @@
             height: 4px;
             border-radius: 50%;
             background: var(--accent);
-            animation: blink 1.2s ease-in-out infinite;
+            animation: blink 1.2s ease-in-out infinite
         }
 
         .typing .dot:nth-child(2) {
-            animation-delay: 0.2s;
+            animation-delay: 0.2s
         }
 
         .typing .dot:nth-child(3) {
-            animation-delay: 0.4s;
+            animation-delay: 0.4s
         }
 
         @keyframes blink {
@@ -528,7 +587,6 @@
             }
         }
 
-        /* Streaming cursor */
         .stream-cursor {
             display: inline-block;
             width: 7px;
@@ -536,7 +594,7 @@
             background: var(--accent);
             vertical-align: middle;
             margin-left: 1px;
-            animation: blink-cursor 0.9s step-end infinite;
+            animation: blink-cursor 0.9s step-end infinite
         }
 
         @keyframes blink-cursor {
@@ -551,12 +609,37 @@
             }
         }
 
-        /* ── Input area ── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 8px;
+            opacity: 0.4
+        }
+
+        .empty-state .big {
+            font-family: var(--mono);
+            font-size: 48px;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            line-height: 1
+        }
+
+        .empty-state p {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.15em
+        }
+
         .input-area {
-            padding: 16px 20px;
+            padding: 14px 20px;
             border-top: 1px solid var(--border);
             background: var(--surface);
             position: relative;
+            flex-shrink: 0;
         }
 
         .input-area::before {
@@ -597,16 +680,15 @@
             line-height: 1.5;
             outline: none;
             transition: border-color 0.15s;
-            overflow-y: auto;
         }
 
         textarea:focus {
             border-color: var(--accent-dim);
-            box-shadow: 0 0 0 1px var(--accent-glow);
+            box-shadow: 0 0 0 1px var(--accent-glow)
         }
 
         textarea::placeholder {
-            color: var(--muted);
+            color: var(--muted)
         }
 
         .send-btn {
@@ -615,7 +697,7 @@
             color: #000;
             font-family: var(--mono);
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 0.1em;
             padding: 10px 16px;
             cursor: pointer;
@@ -625,444 +707,1323 @@
         }
 
         .send-btn:hover {
-            filter: brightness(1.15);
+            filter: brightness(1.15)
         }
 
         .send-btn:disabled {
             opacity: 0.35;
-            cursor: not-allowed;
+            cursor: not-allowed
         }
 
         .hint {
             font-family: var(--mono);
             font-size: 10px;
             color: var(--muted);
-            margin-top: 8px;
+            margin-top: 8px
         }
 
-        /* ── Empty state ── */
-        .empty-state {
+        /* ══════════════════════════════════════
+           SHARED DASHBOARD COMPONENTS
+        ══════════════════════════════════════ */
+        .page-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .page-title {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            color: var(--text-dim);
+        }
+
+        .page-title span {
+            color: var(--accent);
+        }
+
+        .last-updated {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            padding: 5px 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .refresh-btn:hover {
+            border-color: var(--accent-dim);
+            color: var(--accent)
+        }
+
+        .refresh-btn.loading {
+            opacity: 0.5;
+            pointer-events: none
+        }
+
+        .refresh-icon {
+            display: inline-block
+        }
+
+        .refresh-btn.loading .refresh-icon {
+            animation: spin 1s linear infinite
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--accent);
+            overflow: hidden;
+        }
+
+        .card.warn {
+            border-top-color: var(--tool-accent);
+        }
+
+        .card.crit {
+            border-top-color: var(--danger);
+        }
+
+        .card.neutral {
+            border-top-color: var(--border-bright, #2a3545);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            background: #0c0e12;
+        }
+
+        .card-title {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: var(--accent);
+        }
+
+        .card.warn .card-title {
+            color: var(--tool-accent)
+        }
+
+        .card.crit .card-title {
+            color: var(--danger)
+        }
+
+        .card-body {
+            padding: 14px;
+        }
+
+        .badge {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            padding: 2px 7px;
+            border: 1px solid;
+        }
+
+        .badge.ok {
+            color: #28c840;
+            border-color: #28c84040;
+            background: #28c84010;
+        }
+
+        .badge.warn {
+            color: var(--tool-accent);
+            border-color: var(--tool-accent)40;
+            background: var(--tool-accent)10;
+        }
+
+        .badge.crit {
+            color: var(--danger);
+            border-color: var(--danger)40;
+            background: var(--danger)10;
+        }
+
+        .badge.dim {
+            color: var(--muted);
+            border-color: var(--border);
+            background: transparent;
+        }
+
+        /* Big number */
+        .big-num {
+            font-family: var(--mono);
+            font-size: 40px;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .big-num sup {
+            font-size: 14px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+        }
+
+        .big-num.warn {
+            color: var(--tool-accent)
+        }
+
+        .big-num.crit {
+            color: var(--danger)
+        }
+
+        /* Progress bar */
+        .prog-wrap {
+            height: 4px;
+            background: var(--border);
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .prog-bar {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.6s ease;
+        }
+
+        .prog-bar.warn {
+            background: var(--tool-accent)
+        }
+
+        .prog-bar.crit {
+            background: var(--danger)
+        }
+
+        /* Stat rows */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            letter-spacing: 0.08em
+        }
+
+        .stat-val {
+            color: var(--text)
+        }
+
+        .stat-val.accent {
+            color: var(--accent)
+        }
+
+        .stat-val.warn {
+            color: var(--tool-accent)
+        }
+
+        .stat-val.crit {
+            color: var(--danger)
+        }
+
+        .stat-val.ok {
+            color: #28c840
+        }
+
+        /* Skeleton loader */
+        .skeleton {
+            background: linear-gradient(90deg, var(--border) 25%, var(--surface2) 50%, var(--border) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 2px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
+
+        /* ══════════════════════════════════════
+           METRICS PAGE
+        ══════════════════════════════════════ */
+        .metrics-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .metrics-layout.span2 {
+            grid-column: 1/-1;
+        }
+
+        /* Per-core bar chart */
+        .core-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(24px, 1fr));
+            gap: 4px;
+            margin-top: 12px;
+        }
+
+        .core-cell {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100%;
-            gap: 8px;
-            opacity: 0.4;
+            gap: 3px;
         }
 
-        .empty-state .big {
+        .core-bar-wrap {
+            width: 100%;
+            height: 44px;
+            background: var(--border);
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .core-bar {
+            width: 100%;
+            transition: height 0.5s ease;
+        }
+
+        .core-lbl {
             font-family: var(--mono);
-            font-size: 48px;
+            font-size: 8px;
+            color: var(--text-dim);
+        }
+
+        /* Disk mount */
+        .mount-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mount-item:last-child {
+            border-bottom: none
+        }
+
+        .mount-path {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .mount-path .fstype {
+            color: var(--text-dim);
+            font-size: 10px;
+            margin-left: 6px
+        }
+
+        .mount-stats {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 6px
+        }
+
+        .mount-pct {
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text-dim);
+            text-align: right;
+            margin-top: 2px
+        }
+
+        /* Net interface */
+        .net-iface-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        .net-iface-card:last-child {
+            margin-bottom: 0
+        }
+
+        .net-iface-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            font-size: 12px;
+            margin-bottom: 6px;
+            letter-spacing: 0.08em
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        .status-dot.up {
+            background: #28c840;
+            box-shadow: 0 0 5px #28c840
+        }
+
+        .status-dot.down {
+            background: var(--danger);
+            box-shadow: 0 0 5px var(--danger)
+        }
+
+        /* ══════════════════════════════════════
+           DEVICE PAGE
+        ══════════════════════════════════════ */
+        .device-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .identity-name {
+            font-family: var(--mono);
+            font-size: 32px;
             color: var(--accent);
             letter-spacing: 0.1em;
-            line-height: 1;
+            text-shadow: 0 0 30px var(--accent-dim);
+            animation: flicker 6s ease-in-out infinite;
+            margin-bottom: 4px;
         }
 
-        .empty-state p {
+        @keyframes flicker {
+
+            0%,
+            92%,
+            96%,
+            100% {
+                opacity: 1
+            }
+
+            93% {
+                opacity: 0.3
+            }
+
+            94% {
+                opacity: 1
+            }
+
+            95% {
+                opacity: 0.6
+            }
+        }
+
+        .identity-ip {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px
+        }
+
+        .tag {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            padding: 3px 8px;
+            border: 1px solid var(--border);
+            color: var(--text-dim)
+        }
+
+        /* Ping display */
+        .ping-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px
+        }
+
+        .ping-label-sm {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            color: var(--text-dim);
+            margin-bottom: 6px
+        }
+
+        .ping-num {
+            font-family: var(--mono);
+            font-size: 36px;
+            line-height: 1;
+            color: var(--accent)
+        }
+
+        .ping-num.warn {
+            color: var(--tool-accent)
+        }
+
+        .ping-num.crit {
+            color: var(--danger)
+        }
+
+        .ping-unit {
             font-family: var(--mono);
             font-size: 11px;
             color: var(--text-dim);
-            letter-spacing: 0.15em;
+            letter-spacing: 0.1em;
+            margin-left: 4px
+        }
+
+        .ping-bars {
+            display: flex;
+            gap: 3px;
+            margin-top: 8px;
+            align-items: flex-end;
+            height: 28px
+        }
+
+        .ping-bar {
+            width: 7px;
+            background: var(--accent);
+            transition: height 0.3s ease
+        }
+
+        .ping-bar.warn {
+            background: var(--tool-accent)
+        }
+
+        .ping-bar.crit {
+            background: var(--danger)
+        }
+
+        /* ══════════════════════════════════════
+           THE PIT — stub
+        ══════════════════════════════════════ */
+        #page-pit {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pit-stub {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            max-width: 480px;
+            text-align: center;
+            padding: 40px
+        }
+
+        .pit-glyph {
+            font-family: var(--mono);
+            font-size: 80px;
+            color: var(--tool-accent);
+            letter-spacing: 0.1em;
+            line-height: 1;
+            text-shadow: 0 0 40px rgba(240, 180, 41, 0.4), 0 0 80px rgba(240, 180, 41, 0.1);
+            animation: flicker 7s ease-in-out infinite
+        }
+
+        .pit-name {
+            font-family: var(--mono);
+            font-size: 14px;
+            letter-spacing: 0.25em;
+            color: var(--tool-accent);
+            opacity: 0.7;
+            margin-top: -8px
+        }
+
+        .pit-desc {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.9;
+            letter-spacing: 0.04em
+        }
+
+        .pit-status-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface);
+            border: 1px solid var(--tool-border);
+            border-left: 2px solid var(--tool-accent);
+            padding: 8px 14px;
+            width: 100%;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-dim)
+        }
+
+        .pit-status-line+.pit-status-line {
+            border-top: none;
+            margin-top: -1px
+        }
+
+        .pit-dot-sm {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--muted);
+            flex-shrink: 0
+        }
+
+        .pit-dot-sm.on {
+            background: var(--tool-accent);
+            box-shadow: 0 0 6px var(--tool-accent);
+            animation: pulse 1.8s ease-in-out infinite
         }
     </style>
 </head>
 
 <body>
-    <div class="shell">
+    <div class="app">
+
+        <!-- ── HEADER ── -->
         <header>
-            <div class="wordmark">BRICK <span>// SYSADMIN ASSISTANT</span></div>
-            <div class="device-tag">
-                <div class="dot"></div>
-                {{ device.name }}
-            </div>
-            <div class="header-actions">
+            <div class="wordmark">BRICK <sub>// SYSADMIN</sub></div>
+            <nav>
+                <button class="nav-tab active" onclick="switchPage('chat',this)">
+                    <span>⌨</span> CHAT
+                </button>
+                <button class="nav-tab" onclick="switchPage('metrics',this)">
+                    <span>◈</span> METRICS
+                </button>
+                <button class="nav-tab" onclick="switchPage('device',this)">
+                    <span>◎</span> DEVICE
+                </button>
+                <button class="nav-tab" onclick="switchPage('pit',this)">
+                    <span>▣</span> THE PIT
+                    <span class="tab-badge">SOON</span>
+                </button>
+            </nav>
+            <div class="header-right">
+                <div class="device-pill">
+                    <div class="pulse"></div>
+                    <span>{{ device.name }}</span>
+                </div>
                 <button class="btn-ghost" onclick="clearHistory()">CLR</button>
             </div>
         </header>
 
-        <div class="messages" id="messages">
-            <div class="empty-state" id="emptyState">
-                <div class="big">█</div>
-                <p>WAITING FOR INPUT, BOSS.</p>
+        <!-- ══════════════════════════════════════
+         CHAT
+    ══════════════════════════════════════ -->
+        <div class="page" id="page-chat">
+            <div class="messages" id="messages">
+                <div class="empty-state" id="emptyState">
+                    <div class="big">█</div>
+                    <p>WAITING FOR INPUT, BOSS.</p>
+                </div>
+            </div>
+            <div class="input-area">
+                <div class="input-row">
+                    <div class="input-prefix">&gt;</div>
+                    <textarea id="input" placeholder="What's the situation..." rows="1" autofocus></textarea>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">SEND</button>
+                </div>
+                <div class="hint">enter to send &nbsp;·&nbsp; shift+enter for newline</div>
             </div>
         </div>
 
-        <div class="input-area">
-            <div class="input-row">
-                <div class="input-prefix">&gt;</div>
-                <textarea id="input" placeholder="What's the situation..." rows="1" autofocus></textarea>
-                <button class="send-btn" id="sendBtn" onclick="sendMessage()">SEND</button>
+        <!-- ══════════════════════════════════════
+         METRICS
+    ══════════════════════════════════════ -->
+        <div class="page" id="page-metrics">
+            <div class="page-scroll">
+                <div class="page-toolbar">
+                    <div class="page-title">SYSTEM TELEMETRY <span>// {{ device.name }}</span></div>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <span class="last-updated" id="metrics-ts">—</span>
+                        <button class="refresh-btn" id="metrics-refresh" onclick="loadMetrics()">
+                            <span class="refresh-icon">↻</span> REFRESH
+                        </button>
+                    </div>
+                </div>
+
+                <div class="metrics-layout" style="margin-bottom:16px">
+                    <!-- CPU -->
+                    <div class="card" id="card-cpu">
+                        <div class="card-header">
+                            <span class="card-title">CPU</span>
+                            <span class="badge ok" id="cpu-badge">—</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="big-num" id="cpu-pct">—<sup>%</sup></div>
+                            <div class="prog-wrap">
+                                <div class="prog-bar" id="cpu-bar" style="width:0%"></div>
+                            </div>
+                            <div class="stat-row"><span class="stat-label">LOAD 1m / 5m / 15m</span><span
+                                    class="stat-val" id="cpu-load">—</span></div>
+                            <div class="stat-row"><span class="stat-label">IOWAIT</span><span class="stat-val"
+                                    id="cpu-iowait">—</span></div>
+                            <div class="stat-row"><span class="stat-label">STEAL</span><span class="stat-val"
+                                    id="cpu-steal">—</span></div>
+                            <div class="stat-row"><span class="stat-label">LOGICAL / PHYSICAL</span><span
+                                    class="stat-val" id="cpu-cores">—</span></div>
+                            <div class="core-grid" id="core-grid"></div>
+                        </div>
+                    </div>
+
+                    <!-- Memory -->
+                    <div class="card" id="card-mem">
+                        <div class="card-header">
+                            <span class="card-title">MEMORY</span>
+                            <span class="badge ok" id="mem-badge">—</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="big-num" id="mem-pct">—<sup>%</sup></div>
+                            <div class="prog-wrap">
+                                <div class="prog-bar" id="mem-bar" style="width:0%"></div>
+                            </div>
+                            <div class="stat-row"><span class="stat-label">USED</span><span class="stat-val"
+                                    id="mem-used">—</span></div>
+                            <div class="stat-row"><span class="stat-label">AVAILABLE</span><span class="stat-val"
+                                    id="mem-avail">—</span></div>
+                            <div class="stat-row"><span class="stat-label">TOTAL</span><span class="stat-val"
+                                    id="mem-total">—</span></div>
+                            <div class="stat-row"><span class="stat-label">CACHED</span><span class="stat-val"
+                                    id="mem-cached">—</span></div>
+                            <div class="stat-row"><span class="stat-label">SWAP USED / TOTAL</span><span
+                                    class="stat-val" id="mem-swap">—</span></div>
+                            <div
+                                style="margin-top:14px;font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:6px">
+                                TOP CONSUMERS</div>
+                            <div id="mem-top-procs"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disk -->
+                <div class="card" id="card-disk" style="margin-bottom:16px">
+                    <div class="card-header">
+                        <span class="card-title">DISK</span>
+                        <span class="badge ok" id="disk-badge">—</span>
+                    </div>
+                    <div class="card-body" id="disk-body">
+                        <div class="skeleton" style="height:14px;width:60%;margin-bottom:10px"></div>
+                        <div class="skeleton" style="height:14px;width:40%"></div>
+                    </div>
+                </div>
+
+                <!-- Network I/O -->
+                <div class="card" id="card-net" style="margin-bottom:8px">
+                    <div class="card-header">
+                        <span class="card-title">NETWORK I/O</span>
+                        <span class="badge ok" id="net-badge">—</span>
+                    </div>
+                    <div class="card-body" id="net-body">
+                        <div class="skeleton" style="height:60px;margin-bottom:8px"></div>
+                        <div class="skeleton" style="height:60px"></div>
+                    </div>
+                </div>
             </div>
-            <div class="hint">enter to send &nbsp;·&nbsp; shift+enter for newline</div>
         </div>
-    </div>
+
+        <!-- ══════════════════════════════════════
+         DEVICE
+    ══════════════════════════════════════ -->
+        <div class="page" id="page-device">
+            <div class="page-scroll">
+                <div class="page-toolbar">
+                    <div class="page-title">CONNECTED DEVICE <span>// PROFILE</span></div>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <span class="last-updated" id="device-ts">—</span>
+                        <button class="refresh-btn" id="device-refresh" onclick="loadDevice()">
+                            <span class="refresh-icon">↻</span> REFRESH
+                        </button>
+                    </div>
+                </div>
+
+                <div class="device-layout" style="margin-bottom:16px">
+                    <!-- Identity -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">IDENTITY</span>
+                            <span class="badge ok">REGISTERED</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="identity-name" id="dev-name">{{ device.name }}</div>
+                            <div class="identity-ip" id="dev-ip">{{ device.ip }}</div>
+                            <div class="tag-list" id="dev-tags">
+                                {% for tag in device.tags %}
+                                <span class="tag">{{ tag | upper }}</span>
+                                {% endfor %}
+                            </div>
+                            <div style="margin-top:14px">
+                                <div class="stat-row"><span class="stat-label">DESCRIPTION</span><span
+                                        class="stat-val">{{ device.description }}</span></div>
+                                <div class="stat-row"><span class="stat-label">HOSTNAME</span><span
+                                        class="stat-val accent" id="dev-hostname">—</span></div>
+                                <div class="stat-row"><span class="stat-label">OS</span><span class="stat-val"
+                                        id="dev-os">—</span></div>
+                                <div class="stat-row"><span class="stat-label">KERNEL</span><span class="stat-val"
+                                        id="dev-kernel">—</span></div>
+                                <div class="stat-row"><span class="stat-label">CPU</span><span class="stat-val"
+                                        id="dev-cpu">—</span></div>
+                                <div class="stat-row"><span class="stat-label">TOTAL RAM</span><span class="stat-val"
+                                        id="dev-ram">—</span></div>
+                                <div class="stat-row"><span class="stat-label">UPTIME</span><span class="stat-val ok"
+                                        id="dev-uptime">—</span></div>
+                                <div class="stat-row"><span class="stat-label">BOOT TIME</span><span class="stat-val"
+                                        id="dev-boot">—</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network interfaces -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">NETWORK INTERFACES</span>
+                            <span class="badge ok" id="iface-badge">—</span>
+                        </div>
+                        <div class="card-body" id="iface-body">
+                            <div class="skeleton" style="height:70px;margin-bottom:8px"></div>
+                            <div class="skeleton" style="height:70px"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connectivity / Ping -->
+                <div class="card" style="margin-bottom:8px">
+                    <div class="card-header">
+                        <span class="card-title">CONNECTIVITY CHECK</span>
+                        <span class="badge dim" id="ping-badge">PENDING</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="ping-grid">
+                            <div>
+                                <div class="ping-label-sm">8.8.8.8 (GOOGLE DNS)</div>
+                                <div style="display:flex;align-items:baseline;gap:4px">
+                                    <div class="ping-num" id="ping-g">—</div>
+                                    <div class="ping-unit">ms</div>
+                                </div>
+                                <div class="ping-bars" id="ping-g-bars"></div>
+                            </div>
+                            <div>
+                                <div class="ping-label-sm">1.1.1.1 (CLOUDFLARE)</div>
+                                <div style="display:flex;align-items:baseline;gap:4px">
+                                    <div class="ping-num" id="ping-cf">—</div>
+                                    <div class="ping-unit">ms</div>
+                                </div>
+                                <div class="ping-bars" id="ping-cf-bars"></div>
+                            </div>
+                            <div>
+                                <div class="ping-label-sm">PACKET LOSS</div>
+                                <div style="display:flex;align-items:baseline;gap:4px">
+                                    <div class="ping-num" id="ping-loss">—</div>
+                                    <div class="ping-unit">%</div>
+                                </div>
+                                <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:10px"
+                                    id="ping-status">waiting…</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+         THE PIT — stub
+    ══════════════════════════════════════ -->
+        <div class="page" id="page-pit">
+            <div class="pit-stub">
+                <div class="pit-glyph">▣</div>
+                <div class="pit-name">THE PIT</div>
+                <div class="pit-desc">
+                    Brick's personal sandbox. Alpine Linux. Persistent.<br>
+                    Scripts run here first. Things that might blow up, happen here.<br><br>
+                    Not a throwaway environment. A bench.
+                </div>
+                <div class="pit-status-line">
+                    <div class="pit-dot-sm on"></div>
+                    SANDBOX MANAGEMENT INTERFACE — COMING ONLINE
+                </div>
+                <div class="pit-status-line">
+                    <div class="pit-dot-sm"></div>
+                    <span style="color:var(--muted)">Available via chat: sandbox_exec, sandbox_status,
+                        sandbox_write_file, sandbox_read_file…</span>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- .app -->
 
     <script>
-        const messagesEl = document.getElementById('messages');
-        const inputEl = document.getElementById('input');
-        const sendBtn = document.getElementById('sendBtn');
+        // ═══════════════════════════════════════════════════════
+        //  NAVIGATION
+        // ═══════════════════════════════════════════════════════
+        let metricsLoaded = false, deviceLoaded = false;
 
-        // ── Tool metadata ─────────────────────────────────────────────────────────────
-        const TOOL_META = {
-            get_cpu_usage: { icon: '⚙', label: 'CPU Usage' },
-            get_memory_usage: { icon: '🧠', label: 'Memory' },
-            get_disk_usage: { icon: '💾', label: 'Disk Usage' },
-            get_system_info: { icon: '🖥', label: 'System Info' },
-            get_temperatures: { icon: '🌡', label: 'Temperatures' },
-            get_inode_usage: { icon: '📁', label: 'Inode Usage' },
-            list_processes: { icon: '📋', label: 'List Processes' },
-            search_process: { icon: '🔍', label: 'Search Process' },
-            kill_process: { icon: '🔴', label: 'Kill Process' },
-            set_process_priority: { icon: '⚖', label: 'Set Priority' },
-            get_connections: { icon: '🔌', label: 'Connections' },
-            ping_host: { icon: '📡', label: 'Ping Host' },
-            get_network_io: { icon: '📶', label: 'Network I/O' },
-            tail_log: { icon: '📜', label: 'Tail Log' },
-            find_large_files: { icon: '🗂', label: 'Find Large Files' },
-            list_directory: { icon: '📂', label: 'List Dir' },
-            list_services: { icon: '⚡', label: 'List Services' },
-            get_service_status: { icon: '🔧', label: 'Service Status' },
-            get_login_history: { icon: '👤', label: 'Login History' },
-            get_cron_jobs: { icon: '🕐', label: 'Cron Jobs' },
-        };
-        function toolMeta(name) { return TOOL_META[name] || { icon: '🔧', label: name }; }
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        function switchPage(name, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('page-' + name).classList.add('active');
+            btn.classList.add('active');
+            if (name === 'metrics' && !metricsLoaded) loadMetrics();
+            if (name === 'device' && !deviceLoaded) loadDevice();
         }
 
-        function formatParams(params) {
-            if (!params || typeof params !== 'object') return '';
-            const entries = Object.entries(params);
-            if (entries.length === 0) return '(no parameters)';
-            return entries.map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n');
+        // ═══════════════════════════════════════════════════════
+        //  HELPERS
+        // ═══════════════════════════════════════════════════════
+        const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const fmtMB = mb => mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : Math.round(mb) + ' MB';
+        const sc = pct => pct > 90 ? 'crit' : pct > 75 ? 'warn' : 'ok';
+
+        function setBadge(id, text, cls) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = text; el.className = 'badge ' + cls;
+        }
+        function setCard(id, cls) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.className = 'card ' + (cls === 'ok' ? '' : cls);
+        }
+        function setBar(id, pct) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.width = pct + '%'; el.className = 'prog-bar ' + sc(pct);
+        }
+        function setBigNum(id, val, unit = '%') {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const cls = sc(parseFloat(val) || 0);
+            el.innerHTML = Math.round(parseFloat(val) || 0) + `<sup>${unit}</sup>`;
+            el.className = 'big-num ' + cls;
         }
 
-        // ── Tool pill factory ─────────────────────────────────────────────────────────
-        function createToolPill(name, params) {
-            const meta = toolMeta(name);
-            const pill = document.createElement('div');
-            pill.className = 'tool-pill running';
-            pill.dataset.toolName = name;
-
-            // Header
-            const header = document.createElement('div');
-            header.className = 'tool-pill-header';
-
-            const spinner = document.createElement('div');
-            spinner.className = 'tool-spinner';
-
-            const nameEl = document.createElement('span');
-            nameEl.className = 'tool-pill-name';
-            nameEl.textContent = `${meta.label}`;
-
-            const chevron = document.createElement('span');
-            chevron.className = 'tool-pill-chevron';
-            chevron.textContent = '▾';
-
-            header.appendChild(spinner);
-            header.appendChild(nameEl);
-            header.appendChild(chevron);
-
-            // Body (accordion)
-            const body = document.createElement('div');
-            body.className = 'tool-pill-body';
-
-            // Params section
-            const paramsSection = document.createElement('div');
-            paramsSection.className = 'tool-section';
-            paramsSection.innerHTML = `<div class="tool-section-label">PARAMETERS</div><div class="tool-section-content">${escapeHtml(formatParams(params))}</div>`;
-
-            // Result section (placeholder while running)
-            const resultSection = document.createElement('div');
-            resultSection.className = 'tool-section';
-            resultSection.innerHTML = `<div class="tool-section-label">RESULT</div><div class="tool-section-content result-content"><span style="color:var(--muted);font-style:italic">executing…</span></div>`;
-
-            body.appendChild(paramsSection);
-            body.appendChild(resultSection);
-            pill.appendChild(header);
-            pill.appendChild(body);
-
-            // Toggle accordion on header click
-            header.addEventListener('click', () => {
-                pill.classList.toggle('open');
+        // ═══════════════════════════════════════════════════════
+        //  TOOL CALLER — uses /api/tool only (direct execution,
+        //  never touches the agent's chat history or Ollama)
+        // ═══════════════════════════════════════════════════════
+        async function callTool(toolName, params = {}) {
+            const r = await fetch('/api/tool', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: toolName, parameters: params }),
             });
+            const d = await r.json();
+            if (!r.ok || d.error) throw new Error(d.error || `tool ${toolName} failed (${r.status})`);
+            // result is already a parsed object (server handles deserialisation)
+            return d.result;
+        }
 
+        // ═══════════════════════════════════════════════════════
+        //  METRICS PAGE
+        // ═══════════════════════════════════════════════════════
+        async function loadMetrics() {
+            const btn = document.getElementById('metrics-refresh');
+            btn.classList.add('loading');
+            try {
+                const [cpu, mem, disk, net] = await Promise.all([
+                    callTool('get_cpu_usage'),
+                    callTool('get_memory_usage'),
+                    callTool('get_disk_usage'),
+                    callTool('get_network_io'),
+                ]);
+                if (cpu) renderCPU(cpu);
+                if (mem) renderMem(mem);
+                if (disk) renderDisk(disk);
+                if (net) renderNet(net);
+                document.getElementById('metrics-ts').textContent = 'Updated ' + new Date().toLocaleTimeString();
+                metricsLoaded = true;
+            } catch (e) {
+                console.error('metrics load error', e);
+                document.getElementById('metrics-ts').textContent = 'Load failed — ' + e.message;
+            } finally {
+                btn.classList.remove('loading');
+            }
+        }
+
+        function renderCPU(d) {
+            const pct = d.overall_percent ?? 0;
+            const cls = sc(pct);
+            setCard('card-cpu', cls);
+            setBadge('cpu-badge', (d.pressure_label || cls).toUpperCase(), cls);
+            setBigNum('cpu-pct', pct);
+            setBar('cpu-bar', pct);
+
+            const la = d.load_averages;
+            document.getElementById('cpu-load').textContent = la ? `${la['1min']} / ${la['5min']} / ${la['15min']}` : '—';
+            document.getElementById('cpu-iowait').textContent = d.times_percent?.iowait != null ? d.times_percent.iowait.toFixed(1) + '%' : '—';
+            document.getElementById('cpu-steal').textContent = d.times_percent?.steal != null ? d.times_percent.steal.toFixed(1) + '%' : '—';
+            const cc = d.core_count;
+            document.getElementById('cpu-cores').textContent = cc ? `${cc.logical} / ${cc.physical}` : '—';
+
+            // Per-core bars
+            const grid = document.getElementById('core-grid');
+            grid.innerHTML = '';
+            (d.per_core_percent || []).forEach((p, i) => {
+                const barCls = p > 85 ? 'crit' : p > 65 ? 'warn' : 'ok';
+                const barColor = p > 85 ? 'var(--danger)' : p > 65 ? 'var(--tool-accent)' : 'var(--accent)';
+                const cell = document.createElement('div'); cell.className = 'core-cell';
+                cell.innerHTML = `
+            <div class="core-bar-wrap">
+                <div class="core-bar" style="height:${Math.max(2, Math.round(p))}%;background:${barColor}"></div>
+            </div>
+            <div class="core-lbl">${i}</div>`;
+                grid.appendChild(cell);
+            });
+        }
+
+        function renderMem(d) {
+            const ram = d.ram; if (!ram) return;
+            const pct = ram.percent ?? 0;
+            const cls = sc(pct);
+            setCard('card-mem', cls);
+            setBadge('mem-badge', (ram.pressure || cls).toUpperCase(), cls);
+            setBigNum('mem-pct', pct);
+            setBar('mem-bar', pct);
+
+            document.getElementById('mem-used').textContent = fmtMB(ram.used_mb ?? 0);
+            document.getElementById('mem-avail').textContent = fmtMB(ram.available_mb ?? 0);
+            document.getElementById('mem-total').textContent = fmtMB(ram.total_mb ?? 0);
+            document.getElementById('mem-cached').textContent = fmtMB(ram.cached_mb ?? 0);
+            const sw = d.swap;
+            document.getElementById('mem-swap').textContent = sw ? `${fmtMB(sw.used_mb ?? 0)} / ${fmtMB(sw.total_mb ?? 0)}` : '—';
+
+            const topEl = document.getElementById('mem-top-procs');
+            topEl.innerHTML = '';
+            (d.top_processes_by_rss || []).slice(0, 5).forEach(p => {
+                const row = document.createElement('div'); row.className = 'stat-row';
+                row.innerHTML = `<span class="stat-label">${escHtml(p.name || '?')}</span><span class="stat-val">${p.memory_percent?.toFixed(1)}%</span>`;
+                topEl.appendChild(row);
+            });
+        }
+
+        function renderDisk(d) {
+            const parts = d.partitions || []; if (!parts.length) return;
+            const anyCrit = parts.some(p => p.status === 'critical');
+            const anyWarn = parts.some(p => p.status === 'warning');
+            const cls = anyCrit ? 'crit' : anyWarn ? 'warn' : 'ok';
+            setCard('card-disk', cls);
+            setBadge('disk-badge', anyCrit ? 'CRITICAL' : anyWarn ? 'WARNING' : 'OK', cls);
+
+            const body = document.getElementById('disk-body'); body.innerHTML = '';
+            parts.forEach(p => {
+                const pcls = p.status === 'critical' ? 'crit' : p.status === 'warning' ? 'warn' : 'ok';
+                const div = document.createElement('div'); div.className = 'mount-item';
+                div.innerHTML = `
+            <div class="mount-path">${escHtml(p.mountpoint)}<span class="fstype">${escHtml(p.fstype || '')}</span></div>
+            <div class="mount-stats">
+                <span>${p.used_gb} GB used</span>
+                <span>${p.free_gb} GB free</span>
+                <span>${p.total_gb} GB total</span>
+            </div>
+            <div class="prog-wrap"><div class="prog-bar ${pcls}" style="width:${p.percent}%"></div></div>
+            <div class="mount-pct">${p.percent}%</div>`;
+                body.appendChild(div);
+            });
+        }
+
+        function renderNet(d) {
+            const ifaces = d.interfaces || {};
+            const degraded = d.degraded_interfaces || [];
+            const cls = degraded.length ? 'warn' : 'ok';
+            setBadge('net-badge', degraded.length ? `${degraded.length} DEGRADED` : 'OK', cls);
+
+            const body = document.getElementById('net-body'); body.innerHTML = '';
+            Object.entries(ifaces).forEach(([name, data]) => {
+                const isUp = data.is_up !== false;
+                const div = document.createElement('div'); div.className = 'net-iface-card';
+                div.innerHTML = `
+            <div class="net-iface-name">
+                <div class="status-dot ${isUp ? 'up' : 'down'}"></div>
+                ${escHtml(name)}
+                <span style="color:var(--text-dim);font-size:10px;margin-left:4px">${(data.ip_addresses || []).join(', ') || '—'}</span>
+                ${data.speed_mbps ? `<span style="color:var(--muted);font-size:9px;margin-left:auto">${data.speed_mbps} Mbps</span>` : ''}
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">↑ SEND</span><span class="stat-val">${data.rates?.send_mb_per_s ?? '—'} MB/s</span>
+                <span class="stat-label" style="margin-left:16px">↓ RECV</span><span class="stat-val">${data.rates?.recv_mb_per_s ?? '—'} MB/s</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">TOTAL SENT</span><span class="stat-val">${data.totals?.sent_mb ?? '—'} MB</span>
+                <span class="stat-label" style="margin-left:16px">TOTAL RECV</span><span class="stat-val">${data.totals?.recv_mb ?? '—'} MB</span>
+            </div>
+            ${data.degraded ? `<div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-top:6px">⚠ DEGRADED — errors or drops detected</div>` : ''}`;
+                body.appendChild(div);
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  DEVICE PAGE
+        // ═══════════════════════════════════════════════════════
+        async function loadDevice() {
+            const btn = document.getElementById('device-refresh');
+            btn.classList.add('loading');
+            try {
+                const [sys, net] = await Promise.all([
+                    callTool('get_system_info'),
+                    callTool('get_network_io'),
+                ]);
+                if (sys) renderSysInfo(sys);
+                if (net) renderIfaces(net);
+                loadPings();
+                document.getElementById('device-ts').textContent = 'Updated ' + new Date().toLocaleTimeString();
+                deviceLoaded = true;
+            } catch (e) {
+                console.error('device load error', e);
+                document.getElementById('device-ts').textContent = 'Load failed — ' + e.message;
+            } finally {
+                btn.classList.remove('loading');
+            }
+        }
+
+        function renderSysInfo(d) {
+            document.getElementById('dev-hostname').textContent = d.hostname || '—';
+            document.getElementById('dev-os').textContent = d.distro || d.os || '—';
+            document.getElementById('dev-kernel').textContent = d.kernel || '—';
+            document.getElementById('dev-cpu').textContent = d.cpu_model ? d.cpu_model.replace(/\(R\)|\(TM\)/g, '') : '—';
+            document.getElementById('dev-ram').textContent = d.total_ram_gb ? d.total_ram_gb + ' GB' : '—';
+            document.getElementById('dev-uptime').textContent = d.uptime || '—';
+            document.getElementById('dev-boot').textContent = d.boot_time || '—';
+        }
+
+        function renderIfaces(d) {
+            const ifaces = d.interfaces || {};
+            const degraded = d.degraded_interfaces || [];
+            const cls = degraded.length ? 'warn' : 'ok';
+            setBadge('iface-badge', degraded.length ? 'DEGRADED' : 'HEALTHY', cls);
+
+            const body = document.getElementById('iface-body'); body.innerHTML = '';
+            Object.entries(ifaces).forEach(([name, data]) => {
+                const isUp = data.is_up !== false;
+                const div = document.createElement('div'); div.className = 'net-iface-card';
+                div.innerHTML = `
+            <div class="net-iface-name">
+                <div class="status-dot ${isUp ? 'up' : 'down'}"></div>
+                ${escHtml(name)}
+                <span style="color:var(--text-dim);font-size:10px;margin-left:4px">${(data.ip_addresses || []).join(', ') || '—'}</span>
+            </div>
+            <div class="stat-row"><span class="stat-label">SENT</span><span class="stat-val">${data.totals?.sent_mb ?? '—'} MB</span></div>
+            <div class="stat-row"><span class="stat-label">RECV</span><span class="stat-val">${data.totals?.recv_mb ?? '—'} MB</span></div>`;
+                body.appendChild(div);
+            });
+        }
+
+        async function loadPings() {
+            ['ping-g', 'ping-cf', 'ping-loss'].forEach(id => document.getElementById(id).textContent = '…');
+            document.getElementById('ping-status').textContent = 'pinging…';
+            setBadge('ping-badge', 'CHECKING', 'dim');
+
+            try {
+                const [pg, pcf] = await Promise.all([
+                    callTool('ping_host', { host: '8.8.8.8', count: 4 }),
+                    callTool('ping_host', { host: '1.1.1.1', count: 4 }),
+                ]);
+
+                function showPing(elId, barsId, data) {
+                    if (!data) return;
+                    const avg = data.latency_ms?.avg ?? null;
+                    const el = document.getElementById(elId);
+                    el.textContent = avg != null ? Math.round(avg) : (data.reachable ? '?' : 'X');
+                    const cls = !data.reachable ? 'crit' : avg == null ? '' : avg < 25 ? '' : avg < 80 ? 'warn' : 'crit';
+                    el.className = 'ping-num ' + cls;
+
+                    const bars = document.getElementById(barsId); bars.innerHTML = '';
+                    // Decorative bars — visualise variation
+                    const heights = [60, 45, 70, 38, 55, 65, 42, 58];
+                    heights.forEach(h => {
+                        const b = document.createElement('div');
+                        b.className = 'ping-bar ' + cls;
+                        b.style.height = h + '%';
+                        bars.appendChild(b);
+                    });
+                }
+
+                showPing('ping-g', 'ping-g-bars', pg);
+                showPing('ping-cf', 'ping-cf-bars', pcf);
+
+                const loss = pg?.packet_loss_percent ?? 0;
+                const lossEl = document.getElementById('ping-loss');
+                lossEl.textContent = loss;
+                lossEl.className = 'ping-num ' + (loss > 10 ? 'crit' : loss > 0 ? 'warn' : '');
+
+                const ok = pg?.reachable && pcf?.reachable;
+                setBadge('ping-badge', ok ? 'REACHABLE' : 'ISSUES', ok ? 'ok' : 'crit');
+                document.getElementById('ping-status').textContent = ok ? 'All targets online.' : 'One or more targets unreachable.';
+            } catch (e) {
+                document.getElementById('ping-status').textContent = 'check failed';
+                setBadge('ping-badge', 'ERROR', 'crit');
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        //  CHAT
+        // ═══════════════════════════════════════════════════════
+        const TOOL_META = {
+            get_cpu_usage: 'CPU Usage', get_memory_usage: 'Memory', get_disk_usage: 'Disk Usage',
+            get_system_info: 'System Info', get_temperatures: 'Temperatures', get_inode_usage: 'Inode Usage',
+            list_processes: 'List Processes', search_process: 'Search Process', kill_process: 'Kill Process',
+            set_process_priority: 'Set Priority', get_connections: 'Connections', ping_host: 'Ping Host',
+            get_network_io: 'Network I/O', tail_log: 'Tail Log', find_large_files: 'Find Large Files',
+            list_directory: 'List Dir', list_services: 'List Services', get_service_status: 'Service Status',
+            get_login_history: 'Login History', get_cron_jobs: 'Cron Jobs',
+            sandbox_exec: 'The Pit: Exec', sandbox_status: 'The Pit: Status',
+            sandbox_write_file: 'The Pit: Write', sandbox_read_file: 'The Pit: Read',
+            sandbox_list_files: 'The Pit: List', sandbox_install_package: 'The Pit: Install',
+            sandbox_reset: 'The Pit: RESET ⚠',
+        };
+        function toolLabel(name) { return TOOL_META[name] || name; }
+        function fmtParams(p) {
+            if (!p || typeof p !== 'object') return '';
+            const e = Object.entries(p); return e.length === 0 ? '(no params)' : e.map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n');
+        }
+
+        function createPill(name, params) {
+            const pill = document.createElement('div'); pill.className = 'tool-pill running';
+            const header = document.createElement('div'); header.className = 'tool-pill-header';
+            const spinner = document.createElement('div'); spinner.className = 'tool-spinner';
+            const nameEl = document.createElement('span'); nameEl.className = 'tool-pill-name'; nameEl.textContent = toolLabel(name);
+            const chevron = document.createElement('span'); chevron.className = 'tool-pill-chevron'; chevron.textContent = '▾';
+            header.append(spinner, nameEl, chevron);
+            const body = document.createElement('div'); body.className = 'tool-pill-body';
+            body.innerHTML = `<div class="tool-section"><div class="tool-section-label">PARAMETERS</div><div class="tool-section-content">${escHtml(fmtParams(params))}</div></div><div class="tool-section"><div class="tool-section-label">RESULT</div><div class="tool-section-content result-content"><span style="color:var(--muted);font-style:italic">executing…</span></div></div>`;
+            pill.append(header, body);
+            header.addEventListener('click', () => pill.classList.toggle('open'));
             return pill;
         }
 
-        function finishToolPill(pill, result, isError = false) {
-            // Swap spinner → icon
+        function finishPill(pill, result, isErr = false) {
             const spinner = pill.querySelector('.tool-spinner');
             if (spinner) {
-                const icon = document.createElement('span');
-                icon.className = 'tool-status-icon';
-                icon.textContent = isError ? '✗' : '✓';
-                icon.style.color = isError ? 'var(--danger)' : '#28c840';
+                const icon = document.createElement('span'); icon.className = 'tool-status-icon';
+                icon.textContent = isErr ? '✗' : '✓'; icon.style.color = isErr ? 'var(--danger)' : '#28c840';
                 spinner.replaceWith(icon);
             }
-
-            // Update state class
-            pill.classList.remove('running');
-            pill.classList.add(isError ? 'error' : 'done');
-
-            // Fill result content
-            const resultContent = pill.querySelector('.result-content');
-            if (resultContent) {
-                // Try to pretty-print JSON
-                let display = result;
-                try {
-                    const parsed = JSON.parse(result);
-                    display = JSON.stringify(parsed, null, 2);
-                } catch (_) { }
-                resultContent.textContent = display;
-            }
+            pill.classList.remove('running'); pill.classList.add(isErr ? 'error' : 'done');
+            const rc = pill.querySelector('.result-content');
+            if (rc) { let d = result; try { d = JSON.stringify(JSON.parse(result), null, 2) } catch (_) { } rc.textContent = d; }
         }
 
-        // ── Message builders ──────────────────────────────────────────────────────────
-        function appendUserMessage(content) {
+        function buildMsg(role, content) {
+            const msg = document.createElement('div'); msg.className = `msg ${role}`;
+            const rl = document.createElement('div'); rl.className = 'msg-role'; rl.textContent = role === 'user' ? 'YOU' : 'BRICK';
+            const body = document.createElement('div'); body.className = 'msg-body';
+            role === 'assistant' ? (body.innerHTML = marked.parse(content || '')) : (body.textContent = content);
+            msg.append(rl, body); return msg;
+        }
+
+        function scrollBottom() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
+
+        function appendUser(content) {
             document.getElementById('emptyState')?.remove();
-            const group = document.createElement('div');
-            group.className = 'msg-group';
-            group.appendChild(buildMsgEl('user', content));
-            messagesEl.appendChild(group);
+            const g = document.createElement('div'); g.className = 'msg-group';
+            g.appendChild(buildMsg('user', content));
+            document.getElementById('messages').appendChild(g);
             scrollBottom();
-            return group;
         }
 
-        function buildMsgEl(role, content) {
-            const msg = document.createElement('div');
-            msg.className = `msg ${role}`;
-            const roleLabel = document.createElement('div');
-            roleLabel.className = 'msg-role';
-            roleLabel.textContent = role === 'user' ? 'YOU' : 'BRICK';
-            const body = document.createElement('div');
-            body.className = 'msg-body';
-            if (role === 'assistant') {
-                body.innerHTML = marked.parse(content || '');
-            } else {
-                body.textContent = content;
-            }
-            msg.appendChild(roleLabel);
-            msg.appendChild(body);
-            return msg;
-        }
-
-        function scrollBottom() {
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-        }
-
-        // ── Load history ──────────────────────────────────────────────────────────────
         async function loadHistory() {
             try {
-                const res = await fetch('/api/history');
-                const data = await res.json();
-                if (data.history && data.history.length > 0) {
+                const r = await fetch('/api/history'); const d = await r.json();
+                if (d.history?.length > 0) {
                     document.getElementById('emptyState')?.remove();
-                    data.history.forEach(m => {
-                        if (m.role === 'user') appendUserMessage(m.content);
+                    d.history.forEach(m => {
+                        if (m.role === 'user') appendUser(m.content);
                         else if (m.role === 'assistant') {
-                            const group = document.createElement('div');
-                            group.className = 'msg-group';
-                            group.style.animation = 'none';
-                            group.appendChild(buildMsgEl('assistant', m.content));
-                            messagesEl.appendChild(group);
+                            const g = document.createElement('div'); g.className = 'msg-group'; g.style.animation = 'none';
+                            g.appendChild(buildMsg('assistant', m.content));
+                            document.getElementById('messages').appendChild(g);
                         }
                     });
                     scrollBottom();
                 }
-            } catch (e) {
-                console.error('Failed to load history', e);
-            }
+            } catch (e) { console.error(e); }
         }
 
-        // ── Send message (SSE streaming) ──────────────────────────────────────────────
         async function sendMessage() {
-            const message = inputEl.value.trim();
+            const message = document.getElementById('input').value.trim();
             if (!message) return;
-
-            inputEl.value = '';
-            autoResize();
-            sendBtn.disabled = true;
-
+            document.getElementById('input').value = ''; autoResize();
+            document.getElementById('sendBtn').disabled = true;
             document.getElementById('emptyState')?.remove();
-            appendUserMessage(message);
+            appendUser(message);
 
-            // Create the assistant group that will fill in live
-            const group = document.createElement('div');
-            group.className = 'msg-group';
-            messagesEl.appendChild(group);
+            const msgs = document.getElementById('messages');
+            const group = document.createElement('div'); group.className = 'msg-group'; msgs.appendChild(group);
+            const strip = document.createElement('div'); strip.className = 'tool-strip'; group.appendChild(strip);
 
-            // Tool strip container
-            const toolStrip = document.createElement('div');
-            toolStrip.className = 'tool-strip';
-            group.appendChild(toolStrip);
+            const aMsg = document.createElement('div'); aMsg.className = 'msg assistant';
+            const rl = document.createElement('div'); rl.className = 'msg-role'; rl.textContent = 'BRICK';
+            const body = document.createElement('div'); body.className = 'msg-body';
+            body.innerHTML = `<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+            aMsg.append(rl, body); group.appendChild(aMsg); scrollBottom();
 
-            // Assistant bubble
-            const assistantMsg = document.createElement('div');
-            assistantMsg.className = 'msg assistant';
-            const roleLabel = document.createElement('div');
-            roleLabel.className = 'msg-role';
-            roleLabel.textContent = 'BRICK';
-            const bodyEl = document.createElement('div');
-            bodyEl.className = 'msg-body';
+            let streamStarted = false, fullText = '', cursor = null;
+            const pills = new Map();
 
-            // Show thinking dots initially
-            bodyEl.innerHTML = `<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
-            assistantMsg.appendChild(roleLabel);
-            assistantMsg.appendChild(bodyEl);
-            group.appendChild(assistantMsg);
-            scrollBottom();
-
-            // Track streaming state
-            let streamingStarted = false;
-            let fullText = '';
-            let cursor = null;
-            const activePills = new Map(); // name → pill element
-
-            function startStreaming() {
-                if (streamingStarted) return;
-                streamingStarted = true;
-                bodyEl.innerHTML = '';
-                cursor = document.createElement('span');
-                cursor.className = 'stream-cursor';
-                bodyEl.appendChild(cursor);
-            }
-
-            function appendToken(text) {
-                startStreaming();
-                fullText += text;
-                // Remove cursor, append text, re-add cursor at the end
-                if (cursor && cursor.parentNode) cursor.remove();
-                bodyEl.appendChild(document.createTextNode(text));
-                if (cursor) bodyEl.appendChild(cursor);
-                scrollBottom();
-            }
-
-            function finalizeText() {
-                if (cursor) cursor.remove();
-                bodyEl.innerHTML = marked.parse(fullText || '…');
-            }
+            function startStream() { if (streamStarted) return; streamStarted = true; body.innerHTML = ''; cursor = document.createElement('span'); cursor.className = 'stream-cursor'; body.appendChild(cursor); }
+            function addToken(t) { startStream(); fullText += t; if (cursor?.parentNode) cursor.remove(); body.appendChild(document.createTextNode(t)); if (cursor) body.appendChild(cursor); scrollBottom(); }
+            function finalise() { if (cursor) cursor.remove(); body.innerHTML = marked.parse(fullText || '…'); }
 
             try {
-                const response = await fetch('/api/chat/stream', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message }),
-                });
-
-                if (!response.ok) {
-                    bodyEl.innerHTML = `<span style="color:var(--danger)">[HTTP ${response.status}]</span>`;
-                    return;
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-
+                const resp = await fetch('/api/chat/stream', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }) });
+                if (!resp.ok) { body.innerHTML = `<span style="color:var(--danger)">[HTTP ${resp.status}]</span>`; return; }
+                const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = '';
                 while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop(); // hold incomplete line
-
-                    for (const line of lines) {
-                        if (!line.startsWith('data: ')) continue;
-                        let event;
-                        try { event = JSON.parse(line.slice(6)); }
-                        catch (_) { continue; }
-
-                        switch (event.type) {
-                            case 'tool_start': {
-                                // Remove thinking dots if still showing
-                                const thinking = bodyEl.querySelector('.typing');
-                                if (thinking) thinking.remove();
-
-                                const pill = createToolPill(event.name, event.parameters);
-                                toolStrip.appendChild(pill);
-                                activePills.set(event.name, pill);
-                                scrollBottom();
-                                break;
-                            }
-
-                            case 'tool_result': {
-                                const pill = activePills.get(event.name);
-                                if (pill) {
-                                    const isError = (event.result || '').startsWith('[');
-                                    finishToolPill(pill, event.result, isError);
-                                }
-                                scrollBottom();
-                                break;
-                            }
-
-                            case 'token': {
-                                // Remove thinking dots on first token
-                                const thinking = bodyEl.querySelector('.typing');
-                                if (thinking) thinking.remove();
-                                appendToken(event.text);
-                                break;
-                            }
-
-                            case 'error': {
-                                finalizeText();
-                                bodyEl.innerHTML += `<span style="color:var(--danger)"> [Error: ${escapeHtml(event.message)}]</span>`;
-                                break;
-                            }
-
-                            case 'done': {
-                                finalizeText();
-                                scrollBottom();
-                                break;
-                            }
+                    const { done, value } = await reader.read(); if (done) break;
+                    buf += dec.decode(value, { stream: true });
+                    const lines = buf.split('\n'); buf = lines.pop();
+                    for (const l of lines) {
+                        if (!l.startsWith('data: ')) continue;
+                        let ev; try { ev = JSON.parse(l.slice(6)); } catch (_) { continue; }
+                        switch (ev.type) {
+                            case 'tool_start': { body.querySelector('.typing')?.remove(); const p = createPill(ev.name, ev.parameters); strip.appendChild(p); pills.set(ev.name, p); scrollBottom(); break; }
+                            case 'tool_result': { const p = pills.get(ev.name); if (p) finishPill(p, ev.result, (ev.result || '').startsWith('[')); scrollBottom(); break; }
+                            case 'token': { body.querySelector('.typing')?.remove(); addToken(ev.text); break; }
+                            case 'error': { finalise(); body.innerHTML += `<span style="color:var(--danger)"> [Error: ${escHtml(ev.message)}]</span>`; break; }
+                            case 'done': { finalise(); scrollBottom(); break; }
                         }
                     }
                 }
-
-                // Ensure finalized even if 'done' event was missed
-                if (!streamingStarted) {
-                    bodyEl.innerHTML = marked.parse(fullText || '…');
-                } else {
-                    finalizeText();
-                }
-
+                if (!streamStarted) body.innerHTML = marked.parse(fullText || '…'); else finalise();
             } catch (e) {
-                bodyEl.innerHTML = `<span style="color:var(--danger)">[Connection error: ${escapeHtml(e.message)}]</span>`;
+                body.innerHTML = `<span style="color:var(--danger)">[Connection error: ${escHtml(e.message)}]</span>`;
             } finally {
-                sendBtn.disabled = false;
-                inputEl.focus();
-                scrollBottom();
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('input').focus(); scrollBottom();
             }
         }
 
-        // ── Reset ─────────────────────────────────────────────────────────────────────
         async function clearHistory() {
             if (!confirm('Clear conversation history?')) return;
             await fetch('/api/reset', { method: 'POST' });
-            messagesEl.innerHTML = `
-        <div class="empty-state" id="emptyState">
-            <div class="big">█</div>
-            <p>SESSION CLEARED. WAITING FOR INPUT, BOSS.</p>
-        </div>`;
+            document.getElementById('messages').innerHTML = `<div class="empty-state" id="emptyState"><div class="big">█</div><p>SESSION CLEARED. WAITING FOR INPUT, BOSS.</p></div>`;
         }
 
-        // ── Textarea auto-resize ──────────────────────────────────────────────────────
-        function autoResize() {
-            inputEl.style.height = 'auto';
-            inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
-        }
-        inputEl.addEventListener('input', autoResize);
-        inputEl.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
+        function autoResize() { const t = document.getElementById('input'); t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 160) + 'px'; }
+        document.getElementById('input').addEventListener('input', autoResize);
+        document.getElementById('input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 
+        // ── init ──
+        document.getElementById('page-chat').classList.add('active');
         loadHistory();
     </script>
 </body>

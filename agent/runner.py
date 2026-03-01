@@ -180,7 +180,7 @@ class AgentRunner:
         # Max iterations reached
         final = (msg.get("content") or "").strip()
         self.history.append("assistant", final)
-        self.memory.add("assistant", full_text)
+        self.memory.add("assistant", final)
         for char in final:
             yield {"type": "token", "text": char}
         yield {"type": "done", "tool_calls": tool_calls_used}

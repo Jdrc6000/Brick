@@ -20,7 +20,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("brick")
 
 app = Flask(__name__)
-
 _agents: dict[str, Agent] = {}
 
 TOOLS = [
@@ -86,7 +85,6 @@ def chat(device: dict):
     message = (body.get("message") or "").strip()
     if not message:
         return jsonify({"error": "Empty message"}), 400
-
     agent = get_agent(device)
     try:
         reply, tool_calls = agent.chat_with_tools(message)
@@ -94,7 +92,6 @@ def chat(device: dict):
         log.exception("Agent error for device %s", device["name"])
         reply = f"[Error] Something broke: {e}"
         tool_calls = []
-
     slim_tools = [
         {"name": tc["name"], "parameters": tc["parameters"]}
         for tc in tool_calls
@@ -141,6 +138,41 @@ def chat_stream(device: dict):
             "X-Accel-Buffering": "no",
         }
     )
+
+@app.route("/api/tool", methods=["POST"])
+@require_registered_device
+def tool_exec(device: dict):
+    """
+    Direct tool execution — bypasses the agent/LLM entirely.
+    Used by the Metrics and Device dashboard pages for fast data fetching.
+    Does NOT touch agent memory or conversation history.
+
+    Request:  {"name": "get_cpu_usage", "parameters": {}}
+    Response: {"result": <parsed object>, "error": null}
+    """
+    body = request.get_json(silent=True) or {}
+    name   = (body.get("name") or "").strip()
+    params = body.get("parameters") or {}
+
+    if not name:
+        return jsonify({"result": None, "error": "Missing 'name' field"}), 400
+
+    agent = get_agent(device)
+    try:
+        raw = agent.executor.execute({"name": name, "parameters": params})
+        # Try to deserialise so the client receives a real object, not a string
+        try:
+            import ast
+            result = json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            try:
+                result = ast.literal_eval(raw)
+            except Exception:
+                result = raw
+        return jsonify({"result": result, "error": None})
+    except Exception as e:
+        log.exception("tool_exec error for tool=%s device=%s", name, device["name"])
+        return jsonify({"result": None, "error": str(e)}), 500
 
 @app.route("/api/history", methods=["GET"])
 @require_registered_device
@@ -193,7 +225,7 @@ def ollama_proxy():
         content_type="application/x-ndjson",
     )
 
-@app.route("/internal", methods=["GET"])
+@app.route("/internal", methods=["GET"]) # just for testing - forces runtime error to raise an internal error
 def internal():
     raise RuntimeError("HELP!")
 
