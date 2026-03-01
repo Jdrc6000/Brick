@@ -19,6 +19,7 @@ try:
         GetConnections, PingHost, GetNetworkIO,
         TailLog, FindLargeFiles, ListDirectory,
         ListServices, GetServiceStatus, GetLoginHistory, GetCronJobs,
+        SandboxExec, SandboxStatus, SandboxWriteFile, SandboxReadFile, SandboxInstallPackage, SandboxListFiles, SandboxReset
     )
     from tools.registry import ToolRegistry
 except ImportError as e:
@@ -35,6 +36,7 @@ for tool_cls in [
     GetConnections, PingHost, GetNetworkIO,
     TailLog, FindLargeFiles, ListDirectory,
     ListServices, GetServiceStatus, GetLoginHistory, GetCronJobs,
+    SandboxExec, SandboxStatus, SandboxWriteFile, SandboxReadFile, SandboxInstallPackage, SandboxListFiles, SandboxReset
 ]:
     registry.register(tool_cls())
 

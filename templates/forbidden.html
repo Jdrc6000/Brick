@@ -7,6 +7,7 @@
     <title>403 — GO AWAY</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <style>
         *,
         *::before,
@@ -377,7 +378,6 @@ Sign off exactly as: — Brick`,
             };
 
             try {
-                // Call our Flask proxy — avoids the CORS wall entirely
                 const response = await fetch('/api/ollama', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -425,7 +425,7 @@ Sign off exactly as: — Brick`,
                         } catch (_) { }
                     }
                 }
-
+                outputEl.innerHTML = marked.parse(fullText);
             } catch (err) {
                 thinkingEl?.remove();
                 statusDot.className = 'status-dot';

@@ -1,0 +1,42 @@
+services:
+
+  # ── Brick Sandbox ──────────────────────────────────────────────────────────
+  # Brick's personal environment. Persistent Alpine Linux container.
+  # He knows what's in it. He cares about it. Don't break it.
+  sandbox:
+    image: brick-sandbox:latest
+    build:
+      context: .
+      dockerfile: sandbox/Dockerfile
+    container_name: brick-sandbox
+    hostname: brick-sandbox
+    restart: unless-stopped
+
+    # /workspace persists between runs; /tmp is ephemeral
+    volumes:
+      - sandbox_workspace:/workspace
+      - /tmp/brick-sandbox:/tmp
+
+    # Reasonable resource limits — it's a sandbox, not a server farm
+    mem_limit: 512m
+    cpus: "1.0"
+
+    # Keep it alive even when idle
+    tty: true
+    stdin_open: true
+    entrypoint: ["/bin/sh", "-c", "while true; do sleep 3600; done"]
+
+    networks:
+      - brick-internal
+
+    labels:
+      brick.role: "sandbox"
+      brick.description: "Brick personal environment"
+
+volumes:
+  sandbox_workspace:
+    driver: local
+
+networks:
+  brick-internal:
+    driver: bridge

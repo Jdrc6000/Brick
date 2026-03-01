@@ -6,6 +6,18 @@ log = logging.getLogger("brick.remote_executor")
 CLIENT_PORT = 7700
 REQUEST_TIMEOUT = 30
 
+# These tools must always run locally on the server — Docker lives here, not on client devices.
+LOCAL_ONLY_TOOLS = {
+    "sandbox_exec",
+    "sandbox_status",
+    "sandbox_write_file",
+    "sandbox_read_file",
+    "sandbox_list_files",
+    "sandbox_install_package",
+    "sandbox_reset",
+}
+
+
 class RemoteToolExecutor:
     def __init__(self, registry: ToolRegistry, device_ip: str = None):
         self.registry = registry
@@ -33,18 +45,16 @@ class RemoteToolExecutor:
         if not name:
             return "[RemoteToolExecutor] Error: tool call missing 'name' field."
 
-        # Remote path
-        if self.is_remote():
+        # Sandbox tools always run locally — Docker is on the server, not the client device.
+        if self.is_remote() and name not in LOCAL_ONLY_TOOLS:
             return self._execute_remote(name, params)
 
-        # Local fallback
         return self._execute_local(name, params)
 
     def _execute_remote(self, name: str, params: dict) -> str:
         url = f"{self._base_url}/execute"
         payload = {"name": name, "parameters": params}
         log.info("remote execute → %s  %s(%s)", self.device_ip, name, params)
-
         try:
             response = requests.post(url, json=payload, timeout=REQUEST_TIMEOUT)
             data = response.json()

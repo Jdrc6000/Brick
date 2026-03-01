@@ -8,6 +8,7 @@
     <title>404 — GONE. NEVER WAS.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <style>
         *,
         *::before,
@@ -332,6 +333,111 @@
                 letter-spacing: 0.6em;
             }
         }
+
+        /* Markdown */
+        .message-output code {
+            font-family: var(--mono);
+            font-size: 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 1px 5px;
+            color: var(--accent);
+        }
+
+        .message-output pre {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-left: 2px solid var(--accent-dim);
+            padding: 12px 14px;
+            font-family: var(--mono);
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 8px 0;
+            line-height: 1.5;
+            color: #a8c4d8;
+        }
+
+        .message-output p {
+            margin-bottom: 0.6em;
+        }
+
+        .message-output p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-output ul,
+        .message-output ol {
+            padding-left: 1.4em;
+            margin-bottom: 0.6em;
+        }
+
+        .message-output li {
+            margin-bottom: 0.2em;
+        }
+
+        .message-output h1,
+        .message-output h2,
+        .message-output h3 {
+            font-family: var(--mono);
+            color: var(--accent);
+            margin: 0.8em 0 0.3em;
+            letter-spacing: 0.08em;
+        }
+
+        .message-output h1 {
+            font-size: 15px;
+        }
+
+        .message-output h2 {
+            font-size: 14px;
+        }
+
+        .message-output h3 {
+            font-size: 13px;
+        }
+
+        .message-output table {
+            border-collapse: collapse;
+            font-size: 12px;
+            font-family: var(--mono);
+            margin: 8px 0;
+            width: 100%;
+        }
+
+        .message-output th {
+            background: var(--surface2);
+            color: var(--accent);
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .message-output td {
+            padding: 3px 10px;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        .message-output blockquote {
+            border-left: 2px solid var(--accent-dim);
+            margin: 6px 0;
+            padding: 4px 12px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .message-output strong {
+            color: var(--text);
+        }
+
+        .message-output a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .message-output a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -441,6 +547,7 @@ Sign off exactly as: — Brick`,
                         } catch (_) { }
                     }
                 }
+                outputEl.innerHTML = marked.parse(fullText);
             } catch (err) {
                 thinkingEl?.remove();
                 statusDot.className = 'status-dot';

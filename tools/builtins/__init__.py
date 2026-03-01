@@ -14,6 +14,7 @@ from tools.builtins.services_and_security import (
 )
 from tools.builtins.system_info import GetSystemInfo, GetTemperatures, GetInodeUsage
 from tools.builtins.system_metrics import GetCpuUsage, GetMemoryUsage, GetDiskUsage
+from tools.builtins.sandbox import SandboxExec, SandboxStatus, SandboxWriteFile, SandboxReadFile, SandboxInstallPackage, SandboxListFiles, SandboxReset
 
 __all__ = [
     "TailLog",
@@ -36,4 +37,13 @@ __all__ = [
     "GetCpuUsage",
     "GetMemoryUsage",
     "GetDiskUsage",
+    
+    # the pits methods
+    "SandboxExec",
+    "SandboxStatus",
+    "SandboxWriteFile",
+    "SandboxReadFile",
+    "SandboxInstallPackage",
+    "SandboxListFiles", 
+    "SandboxReset"
 ]

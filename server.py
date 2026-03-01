@@ -12,6 +12,7 @@ from tools.builtins import (
     GetConnections, PingHost, GetNetworkIO,
     TailLog, FindLargeFiles, ListDirectory,
     ListServices, GetServiceStatus, GetLoginHistory, GetCronJobs,
+    SandboxExec, SandboxInstallPackage, SandboxListFiles, SandboxReadFile, SandboxReset, SandboxStatus, SandboxWriteFile
 )
 from agent import Agent
 
@@ -29,6 +30,7 @@ TOOLS = [
     GetConnections(), PingHost(), GetNetworkIO(),
     TailLog(), FindLargeFiles(), ListDirectory(),
     ListServices(), GetServiceStatus(), GetLoginHistory(), GetCronJobs(),
+    SandboxExec(), SandboxInstallPackage(), SandboxListFiles(), SandboxReadFile(), SandboxReset(), SandboxStatus(), SandboxWriteFile()
 ]
 
 def get_agent(device: dict) -> "Agent":
