@@ -11,6 +11,7 @@ if __name__ == "__main__":
             GetConnections(), PingHost(), GetNetworkIO(),
             TailLog(), FindLargeFiles(), ListDirectory(),
             ListServices(), GetServiceStatus(), GetLoginHistory(), GetCronJobs(),
+            SandboxExec(), SandboxInstallPackage(), SandboxListFiles(), SandboxReadFile(), SandboxReset(), SandboxStatus(), SandboxWriteFile()
         )
     )
 
