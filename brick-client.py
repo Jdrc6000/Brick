@@ -2,9 +2,7 @@ import os, json, logging
 from flask import Flask, request, jsonify, abort
 
 PORT = 7700
-BRICK_SERVER_IP = "192.168.0.39"
-
-# look, i have a challenge for you, give me a list of all my repo names on github using the username: "Jdrc6000"
+BRICK_SERVER_IP = "192.168.0.67"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("brick-client")
@@ -101,6 +99,6 @@ def schemas():
 
 if __name__ == "__main__":
     log.info("Brick client daemon starting on port %d", PORT)
-    log.info("Accepting requests from: %s", BRICK_SERVER_IP or "ANY (no restriction)")
+    log.info("Accepting requests from: %s", BRICK_SERVER_IP or "ANY")
     log.info("Registered tools: %s", registry.names())
     app.run(host="0.0.0.0", port=PORT, debug=False)
