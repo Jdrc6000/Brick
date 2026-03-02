@@ -1,4 +1,4 @@
-OLLAMA_MODEL = "devstral-small-2:24b-cloud"
+OLLAMA_MODEL = "devstral-2:123b-cloud" # devstral-small-2:24b-cloud
 OLLAMA_BASE_URL = "http://localhost:11434"
 SHORT_TERM_WINDOW = 20
 HISTORY_BACKEND = "json"

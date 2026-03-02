@@ -117,8 +117,14 @@ class AgentRunner:
                     self._record_tool_call(messages, tool_calls_used, tc)
 
             else:
-                # Pure text response — we're done.
                 final = self._extract_final_text(msg)
+                # If model went silent after tool calls, nudge it
+                if not final and tool_calls_used:
+                    messages.append({
+                        "role": "user", 
+                        "content": "Summarize what you found."
+                    })
+                    continue  # loop again to get a real response
                 self.history.append("assistant", final)
                 self.memory.add("assistant", final)
                 return final, tool_calls_used

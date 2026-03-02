@@ -39,6 +39,7 @@ from tools.builtins import (
     SetProcessPriority,
     TailLog,
     WebSearch,
+    SpawnSubagent
 )
 from agent import Agent
 
@@ -96,7 +97,7 @@ def get_agent(device: dict) -> Agent:
                 resume=True,
                 device_ip=device["ip"],
             )
-            agent.register_tools(*TOOLS)
+            agent.register_tools(*TOOLS, SpawnSubagent(device_ip=device["ip"]))
             _agents[session_id] = agent
     return _agents[session_id]
 

@@ -16,7 +16,7 @@ try:
         TailLog, FindLargeFiles, ListDirectory,
         ListServices, GetServiceStatus, GetLoginHistory, GetCronJobs,
         SandboxExec, SandboxStatus, SandboxWriteFile, SandboxReadFile, SandboxInstallPackage, SandboxListFiles, SandboxReset,
-        WebSearch
+        WebSearch, SpawnSubagent
     )
     from tools.registry import ToolRegistry
 except ImportError as e:
@@ -34,7 +34,7 @@ for tool_cls in [
     TailLog, FindLargeFiles, ListDirectory,
     ListServices, GetServiceStatus, GetLoginHistory, GetCronJobs,
     SandboxExec, SandboxStatus, SandboxWriteFile, SandboxReadFile, SandboxInstallPackage, SandboxListFiles, SandboxReset,
-    WebSearch
+    WebSearch, SpawnSubagent
 ]:
     registry.register(tool_cls())
 

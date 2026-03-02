@@ -3022,7 +3022,14 @@
 
             function startStream() { if (streamStarted) return; streamStarted = true; body.innerHTML = ''; cursor = document.createElement('span'); cursor.className = 'stream-cursor'; body.appendChild(cursor); }
             function addToken(t) { startStream(); fullText += t; if (cursor?.parentNode) cursor.remove(); body.appendChild(document.createTextNode(t)); if (cursor) body.appendChild(cursor); scrollBottom(); }
-            function finalise() { if (cursor) cursor.remove(); body.innerHTML = DOMPurify.sanitize(marked.parse(fullText || '…')); }
+            function finalise() {
+                if (cursor) cursor.remove();
+                if (!fullText.trim()) {
+                    body.innerHTML = '<span style="color:var(--text-dim);font-style:italic">—</span>';
+                    return;
+                }
+                body.innerHTML = DOMPurify.sanitize(marked.parse(fullText));
+            }
 
             try {
                 const resp = await fetch('/api/chat/stream', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }) });

@@ -20,6 +20,7 @@ MAX_OUTPUT = 4_000  # chars — truncate noisy commands
 # never depends on the process working directory.
 _THIS_FILE = Path(__file__).resolve()
 COMPOSE_FILE = (_THIS_FILE.parent.parent.parent / "docker-compose.yml").resolve()
+print(COMPOSE_FILE)
 
 # Internal helpers
 def _docker_available() -> bool:

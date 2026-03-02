@@ -5,7 +5,7 @@
 FROM alpine:3.19
 
 LABEL maintainer="brick"
-LABEL description="Brick personal sandbox — do not tamper"
+LABEL description="Brick personal sandbox - do not tamper"
 
 # Core utilities Brick actually wants
 RUN apk add --no-cache \

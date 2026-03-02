@@ -16,6 +16,7 @@ from tools.builtins.system_info import GetSystemInfo, GetTemperatures, GetInodeU
 from tools.builtins.system_metrics import GetCpuUsage, GetMemoryUsage, GetDiskUsage
 from tools.builtins.sandbox import SandboxExec, SandboxStatus, SandboxWriteFile, SandboxReadFile, SandboxInstallPackage, SandboxListFiles, SandboxReset
 from tools.builtins.web_search import WebSearch
+from tools.builtins.subagent import SpawnSubagent
 
 __all__ = [
     # sysadmin
@@ -50,4 +51,5 @@ __all__ = [
     "SandboxReset",
     
     "WebSearch",
+    "SpawnSubagent"
 ]
